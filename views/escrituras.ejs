@@ -1,0 +1,95 @@
+<div class="row g-4">
+  <div class="col-12 col-lg-4">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h2 class="h5 mb-3">
+          <% if (selectedEscritura) { %>
+          Editar Tipo de Escritura
+          <% } else { %>
+          Novo Tipo de Escritura
+          <% } %>
+        </h2>
+        <% if (!currentUser.isMaster) { %>
+        <div class="alert alert-warning" role="alert">
+          Apenas usuários master podem cadastrar ou editar tipos de escritura.
+        </div>
+        <% } else { %>
+        <form
+          action="<%= selectedEscritura ? '/escrituras/' + selectedEscritura.id + '?_method=PUT' : '/escrituras' %>"
+          method="POST"
+        >
+          <div class="mb-3">
+            <label for="nome" class="form-label">Nome</label>
+            <input
+              type="text"
+              class="form-control"
+              id="nome"
+              name="nome"
+              value="<%= selectedEscritura ? selectedEscritura.nome : '' %>"
+              required
+            />
+          </div>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">
+              <%= selectedEscritura ? 'Atualizar' : 'Cadastrar' %>
+            </button>
+            <% if (selectedEscritura) { %>
+            <a class="btn btn-outline-secondary" href="/escrituras">Cancelar</a>
+            <% } %>
+          </div>
+        </form>
+        <% } %>
+        <% if (error) { %>
+        <div class="alert alert-danger mt-3" role="alert"><%= error %></div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-lg-8">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h2 class="h5 mb-3">Tipos cadastrados</h2>
+        <% if (escrituras.length === 0) { %>
+        <p class="text-muted">Nenhum tipo de escritura cadastrado.</p>
+        <% } else { %>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Criado por</th>
+                <% if (currentUser.isMaster) { %>
+                <th class="text-end">Ações</th>
+                <% } %>
+              </tr>
+            </thead>
+            <tbody>
+              <% escrituras.forEach((escritura) => { %>
+              <tr>
+                <td><%= escritura.nome %></td>
+                <td><%= escritura.autor || '—' %></td>
+                <% if (currentUser.isMaster) { %>
+                <td class="text-end">
+                  <a class="btn btn-sm btn-outline-primary" href="/escrituras/<%= escritura.id %>/edit">
+                    Editar
+                  </a>
+                  <form
+                    action="/escrituras/<%= escritura.id %>?_method=DELETE"
+                    method="POST"
+                    class="d-inline"
+                    onsubmit="return confirm('Deseja remover este tipo de escritura?');"
+                  >
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Excluir</button>
+                  </form>
+                </td>
+                <% } %>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>

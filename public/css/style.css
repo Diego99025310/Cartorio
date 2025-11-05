@@ -1,0 +1,21 @@
+body {
+  background-color: #f5f6fa;
+}
+
+.login-body {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0d6efd 0%, #0f4c75 100%);
+}
+
+.login-wrapper {
+  width: 100%;
+  max-width: 360px;
+  padding: 1rem;
+}
+
+.declaracao-texto {
+  white-space: pre-wrap;
+}

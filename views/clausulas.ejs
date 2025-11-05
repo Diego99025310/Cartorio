@@ -1,0 +1,139 @@
+<div class="row g-4">
+  <div class="col-12 col-lg-4">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h2 class="h5 mb-3">
+          <% if (selectedClausula) { %>
+          Editar Cláusula
+          <% } else { %>
+          Nova Cláusula
+          <% } %>
+        </h2>
+        <% if (!currentUser.isMaster) { %>
+        <div class="alert alert-warning" role="alert">
+          Apenas usuários master podem cadastrar ou editar cláusulas.
+        </div>
+        <% } else { %>
+        <form
+          action="<%= selectedClausula ? '/clausulas/' + selectedClausula.id + '?_method=PUT' : '/clausulas' %>"
+          method="POST"
+        >
+          <div class="mb-3">
+            <label for="escritura_id" class="form-label">Tipo de Escritura</label>
+            <select class="form-select" id="escritura_id" name="escritura_id" required>
+              <option value="" disabled <%= selectedEscritura ? '' : 'selected' %>>Selecione</option>
+              <% escrituras.forEach((escritura) => { %>
+              <option
+                value="<%= escritura.id %>"
+                <%= (selectedClausula && selectedClausula.escritura_id === escritura.id) ||
+                (!selectedClausula && Number(selectedEscritura) === escritura.id)
+                  ? 'selected'
+                  : '' %>
+              >
+                <%= escritura.nome %>
+              </option>
+              <% }); %>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="nome" class="form-label">Nome da Cláusula</label>
+            <input
+              type="text"
+              class="form-control"
+              id="nome"
+              name="nome"
+              value="<%= selectedClausula ? selectedClausula.nome : '' %>"
+              required
+            />
+          </div>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">
+              <%= selectedClausula ? 'Atualizar' : 'Cadastrar' %>
+            </button>
+            <% if (selectedClausula) { %>
+            <a class="btn btn-outline-secondary" href="/clausulas?escrituraId=<%= selectedEscritura %>">
+              Cancelar
+            </a>
+            <% } %>
+          </div>
+        </form>
+        <% } %>
+        <% if (error) { %>
+        <div class="alert alert-danger mt-3" role="alert"><%= error %></div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-lg-8">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <form class="row g-3 align-items-end mb-4" method="GET" action="/clausulas">
+          <div class="col-sm-8 col-md-6">
+            <label for="filtroEscritura" class="form-label">Filtrar por tipo de escritura</label>
+            <select class="form-select" id="filtroEscritura" name="escrituraId">
+              <option value="">Todos</option>
+              <% escrituras.forEach((escritura) => { %>
+              <option value="<%= escritura.id %>" <%= Number(selectedEscritura) === escritura.id ? 'selected' : '' %>>
+                <%= escritura.nome %>
+              </option>
+              <% }); %>
+            </select>
+          </div>
+          <div class="col-sm-4 col-md-3">
+            <button type="submit" class="btn btn-outline-primary w-100">Filtrar</button>
+          </div>
+          <% if (selectedEscritura) { %>
+          <div class="col-sm-12 col-md-3">
+            <a class="btn btn-outline-secondary w-100" href="/clausulas">Limpar filtro</a>
+          </div>
+          <% } %>
+        </form>
+        <% if (clausulas.length === 0) { %>
+        <p class="text-muted">Nenhuma cláusula cadastrada.</p>
+        <% } else { %>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead>
+              <tr>
+                <th>Cláusula</th>
+                <th>Tipo de Escritura</th>
+                <th>Criado por</th>
+                <% if (currentUser.isMaster) { %>
+                <th class="text-end">Ações</th>
+                <% } %>
+              </tr>
+            </thead>
+            <tbody>
+              <% clausulas.forEach((clausula) => { %>
+              <tr>
+                <td><%= clausula.nome %></td>
+                <td><%= clausula.escritura_nome || '—' %></td>
+                <td><%= clausula.autor || '—' %></td>
+                <% if (currentUser.isMaster) { %>
+                <td class="text-end">
+                  <a
+                    class="btn btn-sm btn-outline-primary"
+                    href="/clausulas/<%= clausula.id %>/edit?escrituraId=<%= selectedEscritura %>"
+                  >
+                    Editar
+                  </a>
+                  <form
+                    action="/clausulas/<%= clausula.id %>?_method=DELETE"
+                    method="POST"
+                    class="d-inline"
+                    onsubmit="return confirm('Deseja remover esta cláusula?');"
+                  >
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Excluir</button>
+                  </form>
+                </td>
+                <% } %>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>

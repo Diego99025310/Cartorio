@@ -1,4 +1,5 @@
-<div class="row g-4">
+<div class="row g-4 <%= currentUser.isMaster ? '' : 'justify-content-center' %>">
+  <% if (currentUser.isMaster) { %>
   <div class="col-12 col-lg-4">
     <div class="card shadow-sm">
       <div class="card-body">
@@ -9,11 +10,6 @@
           Nova Declaração
           <% } %>
         </h2>
-        <% if (!currentUser.isMaster) { %>
-        <div class="alert alert-warning" role="alert">
-          Apenas usuários master podem cadastrar ou editar declarações.
-        </div>
-        <% } else { %>
         <form
           action="<%= editingDeclaracao ? '/declaracoes/' + editingDeclaracao.id + '?_method=PUT' : '/declaracoes' %>"
           method="POST"
@@ -87,16 +83,22 @@
             <% } %>
           </div>
         </form>
-        <% } %>
         <% if (error) { %>
         <div class="alert alert-danger mt-3" role="alert"><%= error %></div>
         <% } %>
       </div>
     </div>
   </div>
-  <div class="col-12 col-lg-8">
-    <div class="card shadow-sm">
+  <% } %>
+  <div class="<%= currentUser.isMaster ? 'col-12 col-lg-8' : 'col-12 col-lg-10 col-xl-8' %>">
+    <div class="card shadow-sm declaracoes-operador-card">
       <div class="card-body">
+        <div class="d-flex justify-content-between flex-wrap gap-2 align-items-center mb-4">
+          <div>
+            <h2 class="h5 mb-1">Declarações cadastradas</h2>
+            <p class="text-muted mb-0">Filtre e visualize o texto das declarações existentes.</p>
+          </div>
+        </div>
         <form class="row g-3 align-items-end mb-4" method="GET" action="/declaracoes">
           <div class="col-12">
             <label for="filtroEscrituraDeclaracao" class="form-label">Tipo de Escritura</label>
@@ -158,21 +160,34 @@
           <% } %>
         </form>
         <% if (declaracaoVisualizada) { %>
-        <div class="card border-primary mb-4">
+        <div class="card border-primary mb-4 declaracao-destaque">
           <div class="card-body">
-            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
               <div>
                 <h5 class="card-title mb-1"><%= declaracaoVisualizada.titulo %></h5>
-                <p class="card-subtitle text-muted small mb-2">
+                <p class="card-subtitle text-muted small mb-0">
                   Escritura: <%= declaracaoVisualizada.escritura_nome || '—' %> · Cláusula:
                   <%= declaracaoVisualizada.clausula_nome || '—' %>
                 </p>
               </div>
-              <span class="badge text-bg-light">
-                Criado por: <%= declaracaoVisualizada.autor || '—' %>
-              </span>
+              <div class="d-flex flex-column flex-sm-row align-items-sm-center gap-2">
+                <span class="badge text-bg-light">
+                  Criado por: <%= declaracaoVisualizada.autor || '—' %>
+                </span>
+                <% if (declaracaoVisualizada.texto) { %>
+                <button
+                  type="button"
+                  class="btn btn-outline-primary btn-sm copy-declaracao"
+                  data-copy-target="declaracao-texto-destaque"
+                >
+                  Copiar declaração
+                </button>
+                <% } %>
+              </div>
             </div>
-            <p class="card-text declaracao-texto"><%= declaracaoVisualizada.texto %></p>
+            <p class="card-text declaracao-texto mt-3" id="declaracao-texto-destaque">
+              <%= declaracaoVisualizada.texto %>
+            </p>
           </div>
         </div>
         <% } else if (declaracoes.length > 0) { %>

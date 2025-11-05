@@ -16,7 +16,8 @@ const list = async (req, res) => {
       escrituras,
       clausulas,
       selectedEscritura: escrituraId || '',
-      selectedClausula: null
+      selectedClausula: null,
+      error: null
     });
   } catch (error) {
     console.error('Erro ao listar cláusulas:', error);
@@ -26,6 +27,7 @@ const list = async (req, res) => {
       escrituras: [],
       clausulas: [],
       selectedEscritura: '',
+      selectedClausula: null,
       error: 'Não foi possível carregar as cláusulas.'
     });
   }
@@ -68,7 +70,8 @@ const edit = async (req, res) => {
       escrituras,
       clausulas,
       selectedEscritura: escrituraId || clausula.escritura_id,
-      selectedClausula: clausula
+      selectedClausula: clausula,
+      error: null
     });
   } catch (error) {
     console.error('Erro ao carregar edição de cláusula:', error);

@@ -18,7 +18,8 @@ const list = async (req, res) => {
       declaracoes,
       selectedEscritura: escrituraId || '',
       selectedClausula: clausulaId || '',
-      selectedDeclaracao: null
+      selectedDeclaracao: null,
+      error: null
     });
   } catch (error) {
     console.error('Erro ao listar declarações:', error);
@@ -28,6 +29,9 @@ const list = async (req, res) => {
       escrituras: [],
       clausulas: [],
       declaracoes: [],
+      selectedEscritura: '',
+      selectedClausula: '',
+      selectedDeclaracao: null,
       error: 'Não foi possível carregar as declarações.'
     });
   }
@@ -77,7 +81,8 @@ const edit = async (req, res) => {
       declaracoes,
       selectedEscritura: escrituraSelecionada || '',
       selectedClausula: clausulaSelecionada || '',
-      selectedDeclaracao: declaracao
+      selectedDeclaracao: declaracao,
+      error: null
     });
   } catch (error) {
     console.error('Erro ao carregar edição de declaração:', error);

@@ -7,7 +7,8 @@ const list = async (req, res) => {
       title: 'Tipos de Escritura',
       user: req.session,
       escrituras,
-      selectedEscritura: null
+      selectedEscritura: null,
+      error: null
     });
   } catch (error) {
     console.error('Erro ao listar escrituras:', error);
@@ -15,6 +16,7 @@ const list = async (req, res) => {
       title: 'Tipos de Escritura',
       user: req.session,
       escrituras: [],
+      selectedEscritura: null,
       error: 'Não foi possível carregar os tipos de escritura.'
     });
   }
@@ -35,6 +37,7 @@ const create = async (req, res) => {
       title: 'Tipos de Escritura',
       user: req.session,
       escrituras: await Escritura.findAll(),
+      selectedEscritura: null,
       error: 'Não foi possível criar o tipo de escritura.'
     });
   }
@@ -52,7 +55,8 @@ const edit = async (req, res) => {
       title: 'Editar Tipo de Escritura',
       user: req.session,
       escrituras,
-      selectedEscritura: escritura
+      selectedEscritura: escritura,
+      error: null
     });
   } catch (error) {
     console.error('Erro ao carregar edição de escritura:', error);

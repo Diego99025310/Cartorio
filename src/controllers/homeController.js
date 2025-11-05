@@ -17,7 +17,8 @@ const dashboard = async (req, res) => {
         escrituras: escrituras.length,
         clausulas: clausulas.length,
         declaracoes: declaracoes.length
-      }
+      },
+      error: null
     });
   } catch (error) {
     console.error('Erro ao carregar painel:', error);

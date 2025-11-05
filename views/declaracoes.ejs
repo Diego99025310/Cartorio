@@ -96,9 +96,14 @@
         <div class="d-flex justify-content-between flex-wrap gap-2 align-items-center mb-4">
           <div>
             <h2 class="h5 mb-1">Declarações cadastradas</h2>
-            <p class="text-muted mb-0">Filtre e visualize o texto das declarações existentes.</p>
+            <p class="text-muted mb-0">
+              <%= currentUser.isMaster
+                ? 'Filtre e visualize o texto das declarações existentes.'
+                : 'Visualize e copie o texto das declarações disponíveis.' %>
+            </p>
           </div>
         </div>
+        <% if (currentUser.isMaster) { %>
         <form class="row g-3 align-items-end mb-4" method="GET" action="/declaracoes">
           <div class="col-12">
             <label for="filtroEscrituraDeclaracao" class="form-label">Tipo de Escritura</label>
@@ -159,6 +164,7 @@
           </div>
           <% } %>
         </form>
+        <% } %>
         <% if (declaracaoVisualizada) { %>
         <div class="card border-primary mb-4 declaracao-destaque">
           <div class="card-body">
@@ -201,14 +207,27 @@
           <div
             class="list-group-item list-group-item-action flex-column align-items-start <%= Number(selectedDeclaracaoId) === declaracao.id ? 'active-declaracao' : '' %>"
           >
-            <div class="d-flex w-100 justify-content-between">
-              <h5 class="mb-1"><%= declaracao.titulo || 'Sem título' %></h5>
-              <small class="text-muted">Por: <%= declaracao.autor || '—' %></small>
+            <div class="d-flex w-100 justify-content-between align-items-start flex-wrap gap-2">
+              <div>
+                <h5 class="mb-1"><%= declaracao.titulo || 'Sem título' %></h5>
+                <p class="mb-1 text-muted small">
+                  Cláusula: <%= declaracao.clausula_nome || 'Cláusula não informada' %>
+                </p>
+              </div>
+              <div class="d-flex flex-column flex-sm-row gap-2 align-items-sm-center text-sm-end">
+                <small class="text-muted">Por: <%= declaracao.autor || '—' %></small>
+                <% if (declaracao.texto) { %>
+                <button
+                  type="button"
+                  class="btn btn-outline-primary btn-sm copy-declaracao"
+                  data-copy-target="declaracao-texto-<%= declaracao.id %>"
+                >
+                  Copiar declaração
+                </button>
+                <% } %>
+              </div>
             </div>
-            <p class="mb-1 text-muted small">
-              Cláusula: <%= declaracao.clausula_nome || 'Cláusula não informada' %>
-            </p>
-            <p class="mb-1 declaracao-texto"><%= declaracao.texto %></p>
+            <p class="mb-1 declaracao-texto" id="declaracao-texto-<%= declaracao.id %>"><%= declaracao.texto %></p>
             <small class="text-muted">Escritura: <%= declaracao.escritura_nome || '—' %></small>
             <% if (currentUser.isMaster) { %>
             <div class="mt-3">

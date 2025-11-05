@@ -9,7 +9,7 @@ const findAll = (clausulaId = null) =>
       LEFT JOIN escrituras e ON e.id = c.escritura_id
       LEFT JOIN users u ON u.id = d.criado_por
       ${clausulaId ? 'WHERE d.clausula_id = ?' : ''}
-      ORDER BY d.id DESC
+      ORDER BY d.titulo COLLATE NOCASE ASC, d.id DESC
     `;
     const params = clausulaId ? [clausulaId] : [];
     db.all(query, params, (err, rows) => {
@@ -26,21 +26,21 @@ const findById = (id) =>
     });
   });
 
-const create = (clausulaId, texto, userId) =>
+const create = (clausulaId, titulo, texto, userId) =>
   new Promise((resolve, reject) => {
     db.run(
-      'INSERT INTO declaracoes (clausula_id, texto, criado_por) VALUES (?, ?, ?)',
-      [clausulaId, texto, userId],
+      'INSERT INTO declaracoes (clausula_id, titulo, texto, criado_por) VALUES (?, ?, ?, ?)',
+      [clausulaId, titulo, texto, userId],
       function (err) {
         if (err) return reject(err);
-        resolve({ id: this.lastID, clausula_id: clausulaId, texto, criado_por: userId });
+        resolve({ id: this.lastID, clausula_id: clausulaId, titulo, texto, criado_por: userId });
       }
     );
   });
 
-const update = (id, texto) =>
+const update = (id, titulo, texto) =>
   new Promise((resolve, reject) => {
-    db.run('UPDATE declaracoes SET texto = ? WHERE id = ?', [texto, id], function (err) {
+    db.run('UPDATE declaracoes SET titulo = ?, texto = ? WHERE id = ?', [titulo, texto, id], function (err) {
       if (err) return reject(err);
       resolve(this.changes);
     });

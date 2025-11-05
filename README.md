@@ -62,6 +62,7 @@ TIPO DE ESCRITURA → CLÁUSULA → DECLARAÇÃO
 |--------|-------|-----------|
 | id | INTEGER | Identificador |
 | clausula_id | INTEGER | Relaciona com a cláusula |
+| titulo | TEXT | Título exibido para identificar a declaração |
 | texto | TEXT | Texto da declaração |
 | criado_por | INTEGER | ID do usuário criador |
 
@@ -78,6 +79,7 @@ TIPO DE ESCRITURA → CLÁUSULA → DECLARAÇÃO
 - **Tipos de Escritura** (Compra e Venda, Doação, etc.)
 - **Cláusulas** dentro de cada tipo de escritura.
 - **Declarações** dentro de cada cláusula.
+  - Cada declaração possui um título e um corpo de texto.
 
 ### 🔎 Consultas
 - Filtros hierárquicos:

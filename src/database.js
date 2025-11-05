@@ -42,12 +42,42 @@ const initializeDatabase = () => {
       CREATE TABLE IF NOT EXISTS declaracoes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         clausula_id INTEGER NOT NULL,
+        titulo TEXT NOT NULL,
         texto TEXT NOT NULL,
         criado_por INTEGER NOT NULL,
         FOREIGN KEY (clausula_id) REFERENCES clausulas(id) ON DELETE CASCADE,
         FOREIGN KEY (criado_por) REFERENCES users(id)
       )
     `);
+
+    db.all('PRAGMA table_info(declaracoes)', (pragmaErr, columns) => {
+      if (pragmaErr) {
+        console.error('Erro ao inspecionar a tabela declaracoes:', pragmaErr);
+        return;
+      }
+
+      const hasTitulo = columns.some((column) => column.name === 'titulo');
+
+      if (!hasTitulo) {
+        db.run(
+          "ALTER TABLE declaracoes ADD COLUMN titulo TEXT NOT NULL DEFAULT ''",
+          (alterErr) => {
+            if (alterErr) {
+              console.error('Erro ao adicionar coluna titulo em declaracoes:', alterErr);
+            } else {
+              db.run(
+                "UPDATE declaracoes SET titulo = TRIM(substr(texto, 1, 60)) WHERE titulo = ''",
+                (updateErr) => {
+                  if (updateErr) {
+                    console.error('Erro ao preencher titulos existentes:', updateErr);
+                  }
+                }
+              );
+            }
+          }
+        );
+      }
+    });
 
     db.get('SELECT COUNT(*) as total FROM users WHERE is_master = 1', (err, row) => {
       if (err) {

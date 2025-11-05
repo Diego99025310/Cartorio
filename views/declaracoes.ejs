@@ -52,6 +52,18 @@
             </select>
           </div>
           <div class="mb-3">
+            <label for="titulo" class="form-label">Título da Declaração</label>
+            <input
+              type="text"
+              class="form-control"
+              id="titulo"
+              name="titulo"
+              value="<%= selectedDeclaracao ? selectedDeclaracao.titulo : '' %>"
+              maxlength="255"
+              required
+            />
+          </div>
+          <div class="mb-3">
             <label for="texto" class="form-label">Texto da Declaração</label>
             <textarea
               class="form-control"
@@ -126,9 +138,12 @@
           <% declaracoes.forEach((declaracao) => { %>
           <div class="list-group-item list-group-item-action flex-column align-items-start">
             <div class="d-flex w-100 justify-content-between">
-              <h5 class="mb-1"><%= declaracao.clausula_nome || 'Cláusula não informada' %></h5>
+              <h5 class="mb-1"><%= declaracao.titulo || 'Sem título' %></h5>
               <small class="text-muted">Por: <%= declaracao.autor || '—' %></small>
             </div>
+            <p class="mb-1 text-muted small">
+              Cláusula: <%= declaracao.clausula_nome || 'Cláusula não informada' %>
+            </p>
             <p class="mb-1 declaracao-texto"><%= declaracao.texto %></p>
             <small class="text-muted">Escritura: <%= declaracao.escritura_nome || '—' %></small>
             <% if (currentUser.isMaster) { %>

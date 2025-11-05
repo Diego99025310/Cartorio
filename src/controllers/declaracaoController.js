@@ -38,14 +38,16 @@ const list = async (req, res) => {
 };
 
 const create = async (req, res) => {
-  const { clausula_id: clausulaId, texto } = req.body;
+  const { clausula_id: clausulaId, titulo, texto } = req.body;
+  const tituloLimpo = titulo ? titulo.trim() : '';
+  const textoLimpo = texto ? texto.trim() : '';
 
-  if (!clausulaId || !texto) {
+  if (!clausulaId || !tituloLimpo || !textoLimpo) {
     return res.redirect('/declaracoes');
   }
 
   try {
-    await Declaracao.create(clausulaId, texto, req.session.userId);
+    await Declaracao.create(clausulaId, tituloLimpo, textoLimpo, req.session.userId);
     res.redirect(`/declaracoes?clausulaId=${clausulaId}`);
   } catch (error) {
     console.error('Erro ao criar declaração:', error);
@@ -92,7 +94,9 @@ const edit = async (req, res) => {
 
 const update = async (req, res) => {
   const { id } = req.params;
-  const { texto } = req.body;
+  const { titulo, texto } = req.body;
+  const tituloLimpo = titulo ? titulo.trim() : '';
+  const textoLimpo = texto ? texto.trim() : '';
 
   try {
     const declaracao = await Declaracao.findById(id);
@@ -100,7 +104,11 @@ const update = async (req, res) => {
       return res.redirect('/declaracoes');
     }
 
-    await Declaracao.update(id, texto);
+    if (!tituloLimpo || !textoLimpo) {
+      return res.redirect(`/declaracoes/${id}/edit?clausulaId=${declaracao.clausula_id}`);
+    }
+
+    await Declaracao.update(id, tituloLimpo, textoLimpo);
     res.redirect(`/declaracoes?clausulaId=${declaracao.clausula_id}`);
   } catch (error) {
     console.error('Erro ao atualizar declaração:', error);

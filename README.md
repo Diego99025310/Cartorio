@@ -197,10 +197,10 @@ Isso mantém o mesmo padrão dos demais sistemas internos e garante integração
 ---
 
 ## ✅ Estrutura gerada
-O repositório já contém toda a estrutura descrita acima, incluindo inicialização do banco de dados e telas prontas para autenticação, cadastro e consulta dos registros. Um usuário master padrão é criado automaticamente na primeira execução:
+O repositório já contém toda a estrutura descrita acima, incluindo inicialização do banco de dados e telas prontas para autenticação, cadastro e consulta dos registros. Um usuário master padrão é criado automaticamente na primeira execução, juntamente com um operador para consultas:
 
-- **Usuário**: `master`
-- **Senha**: `master123`
+- **Master**: `master` / `master123`
+- **Operador**: `operador` / `operador123`
 
 Para facilitar a operação em ambiente Windows existe o script `iniciar_servidor.bat`, que automaticamente acessa a pasta correta do projeto, instala dependências (caso necessário) e inicia o servidor em seguida. Basta dar **duplo clique** no arquivo ou executá-lo via Prompt de Comando.
 

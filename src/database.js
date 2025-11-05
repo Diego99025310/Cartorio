@@ -70,6 +70,28 @@ const initializeDatabase = () => {
         );
       }
     });
+
+    db.get('SELECT COUNT(*) as total FROM users WHERE is_master = 0', (err, row) => {
+      if (err) {
+        console.error('Erro ao verificar usuários operadores:', err);
+        return;
+      }
+
+      if (row.total === 0) {
+        const defaultPassword = bcrypt.hashSync('operador123', 10);
+        db.run(
+          'INSERT INTO users (username, password, is_master) VALUES (?, ?, 0)',
+          ['operador', defaultPassword],
+          (insertErr) => {
+            if (insertErr) {
+              console.error('Erro ao criar usuário operador padrão:', insertErr);
+            } else {
+              console.log('Usuário operador padrão criado: operador / operador123');
+            }
+          }
+        );
+      }
+    });
   });
 };
 

@@ -1,7 +1,7 @@
 # 🏛️ Sistema de Escrituras - Cartório Torresan (Node.js)
 
 ## 📖 Descrição
-O **Sistema de Escrituras do Cartório Torresan** é uma aplicação local desenvolvida em **Node.js (Express)** com **banco de dados SQLite**, criada para gerenciar **tipos de escritura**, **cláusulas** e **declarações** utilizadas em escrituras públicas.
+O **Sistema de Escrituras do Cartório Torresan** é uma aplicação local desenvolvida em **Node.js (Express)** com **bancos SQLite**, criada para gerenciar **tipos de escritura**, **cláusulas** e **declarações** utilizadas em escrituras públicas.
 
 O sistema será executado **localmente no servidor interno do cartório**, podendo ser acessado pela rede via o **Corridor de DNS**, garantindo integração com outros sistemas já existentes no ambiente.
 
@@ -10,17 +10,14 @@ O sistema será executado **localmente no servidor interno do cartório**, poden
 ## 🧠 Estrutura lógica
 TIPO DE ESCRITURA → CLÁUSULA → DECLARAÇÃO
 
-yaml
-Copiar código
-
 ### Exemplo:
-- Tipo de Escritura: Compra e Venda  
-  - Cláusula: Pagamento  
-    - Declaração: Pagamento em cheque  
-    - Declaração: Pagamento parcelado  
+- Tipo de Escritura: Compra e Venda
+  - Cláusula: Pagamento
+    - Declaração: Pagamento em cheque
+    - Declaração: Pagamento parcelado
 
-- Tipo de Escritura: Doação  
-  - Cláusula: Disposições Gerais  
+- Tipo de Escritura: Doação
+  - Cláusula: Disposições Gerais
     - Declaração: O donatário aceita as condições da doação
 
 ---
@@ -91,6 +88,7 @@ Copiar código
 
 ## 🗂️ Estrutura de diretórios sugerida
 
+```
 Cartorio/
 │
 ├── app.js # Servidor principal Express
@@ -119,9 +117,7 @@ Cartorio/
 │
 ├── package.json
 └── README.md
-
-yaml
-Copiar código
+```
 
 ---
 
@@ -139,57 +135,73 @@ Copiar código
 
 ## 🚀 Como rodar localmente
 
+### 0️⃣ Abrir o terminal na pasta do projeto
+No Windows, abra o **Prompt de Comando** e navegue até a pasta onde o projeto foi extraído:
+```bat
+cd C:\caminho\para\Cartorio
+```
+> ⚠️ Se este passo for ignorado, o `npm` não encontrará o `package.json` e exibirá o erro `ENOENT`.
+
 ### 1️⃣ Instalar dependências
 ```bash
 npm install
-2️⃣ Executar servidor
-bash
-Copiar código
-npm start
-ou
+```
 
-bash
-Copiar código
+### 2️⃣ Executar servidor
+```bash
+npm start
+```
+ou
+```bash
 node app.js
-3️⃣ Acessar no navegador
-arduino
-Copiar código
+```
+
+### 3️⃣ Acessar no navegador
+```
 http://localhost:5000
-🌐 Execução via Corridor de DNS (recomendada)
+```
+
+### 🌐 Execução via Corridor de DNS (recomendada)
 O sistema pode ser executado sob o Corridor de DNS do Cartório Torresan.
 
 Configuração:
 Configure o serviço Corridor para mapear:
-
-perl
-Copiar código
+```
 http://escrituras.cartorio.local → http://127.0.0.1:5000
+```
+
 Inicie o servidor Node:
-
-bash
-Copiar código
+```bash
 node app.js
-Acesse:
+```
 
-arduino
-Copiar código
+Acesse:
+```
 http://escrituras.cartorio.local
+```
+
 Isso mantém o mesmo padrão dos demais sistemas internos e garante integração e segurança na rede local.
 
-🧱 Tarefas que o Codex deve gerar a partir deste README
-Criar o projeto Node.js com package.json e dependências.
+---
 
-Configurar o servidor Express com EJS e SQLite.
+## 🧱 Tarefas que o Codex deve gerar a partir deste README
+- Criar o projeto Node.js com package.json e dependências.
+- Configurar o servidor Express com EJS e SQLite.
+- Criar modelos (users, escrituras, clausulas, declaracoes).
+- Criar rotas e controladores para CRUD completo.
+- Implementar login e controle de acesso.
+- Criar as páginas EJS com layout Bootstrap.
+- Adicionar o script .bat para iniciar o servidor local.
+- Preparar o sistema para rodar sob o Corridor de DNS (porta 5000).
 
-Criar modelos (users, escrituras, clausulas, declaracoes).
+---
 
-Criar rotas e controladores para CRUD completo.
+## ✅ Estrutura gerada
+O repositório já contém toda a estrutura descrita acima, incluindo inicialização do banco de dados e telas prontas para autenticação, cadastro e consulta dos registros. Um usuário master padrão é criado automaticamente na primeira execução, juntamente com um operador para consultas:
 
-Implementar login e controle de acesso.
+- **Master**: `master` / `master123`
+- **Operador**: `operador` / `operador123`
 
-Criar as páginas EJS com layout Bootstrap.
+Para facilitar a operação em ambiente Windows existe o script `iniciar_servidor.bat`, que automaticamente acessa a pasta correta do projeto, instala dependências (caso necessário) e inicia o servidor em seguida. Basta dar **duplo clique** no arquivo ou executá-lo via Prompt de Comando.
 
-Adicionar o script .bat para iniciar o servidor local.
-
-Preparar o sistema para rodar sob o Corridor de DNS (porta 5000).
-
+Para desenvolvimento é possível utilizar o `npm run dev`, que executa o servidor com `nodemon` e recarrega automaticamente a cada alteração nos arquivos.

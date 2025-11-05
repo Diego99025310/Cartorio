@@ -3,7 +3,7 @@
     <div class="card shadow-sm">
       <div class="card-body">
         <h2 class="h5 mb-3">
-          <% if (selectedDeclaracao) { %>
+          <% if (editingDeclaracao) { %>
           Editar Declaração
           <% } else { %>
           Nova Declaração
@@ -15,7 +15,7 @@
         </div>
         <% } else { %>
         <form
-          action="<%= selectedDeclaracao ? '/declaracoes/' + selectedDeclaracao.id + '?_method=PUT' : '/declaracoes' %>"
+          action="<%= editingDeclaracao ? '/declaracoes/' + editingDeclaracao.id + '?_method=PUT' : '/declaracoes' %>"
           method="POST"
         >
           <div class="mb-3">
@@ -41,8 +41,8 @@
               <% clausulas.forEach((clausula) => { %>
               <option
                 value="<%= clausula.id %>"
-                <%= (selectedDeclaracao && selectedDeclaracao.clausula_id === clausula.id) ||
-                (!selectedDeclaracao && Number(selectedClausula) === clausula.id)
+                <%= (editingDeclaracao && editingDeclaracao.clausula_id === clausula.id) ||
+                (!editingDeclaracao && Number(selectedClausula) === clausula.id)
                   ? 'selected'
                   : '' %>
               >
@@ -58,7 +58,7 @@
               class="form-control"
               id="titulo"
               name="titulo"
-              value="<%= selectedDeclaracao ? selectedDeclaracao.titulo : '' %>"
+              value="<%= editingDeclaracao ? editingDeclaracao.titulo : '' %>"
               maxlength="255"
               required
             />
@@ -71,16 +71,16 @@
               name="texto"
               rows="6"
               required
-            ><%= selectedDeclaracao ? selectedDeclaracao.texto : '' %></textarea>
+            ><%= editingDeclaracao ? editingDeclaracao.texto : '' %></textarea>
           </div>
           <div class="d-flex gap-2">
             <button type="submit" class="btn btn-primary">
-              <%= selectedDeclaracao ? 'Atualizar' : 'Cadastrar' %>
+              <%= editingDeclaracao ? 'Atualizar' : 'Cadastrar' %>
             </button>
-            <% if (selectedDeclaracao) { %>
+            <% if (editingDeclaracao) { %>
             <a
               class="btn btn-outline-secondary"
-              href="/declaracoes?clausulaId=<%= selectedClausula %>&escrituraId=<%= selectedEscritura %>"
+              href="/declaracoes?clausulaId=<%= selectedClausula %>&escrituraId=<%= selectedEscritura %><%= selectedDeclaracaoId ? '&declaracaoId=' + selectedDeclaracaoId : '' %>"
             >
               Cancelar
             </a>
@@ -104,7 +104,7 @@
               class="form-select"
               id="filtroEscrituraDeclaracao"
               name="escrituraId"
-              onchange="this.form.submit()"
+              onchange="if (this.form.clausulaId) this.form.clausulaId.value=''; if (this.form.declaracaoId) this.form.declaracaoId.value=''; this.form.submit();"
             >
               <option value="">Todas</option>
               <% escrituras.forEach((escritura) => { %>
@@ -116,7 +116,12 @@
           </div>
           <div class="col-12">
             <label for="filtroClausula" class="form-label">Cláusula</label>
-            <select class="form-select" id="filtroClausula" name="clausulaId" onchange="this.form.submit()">
+            <select
+              class="form-select"
+              id="filtroClausula"
+              name="clausulaId"
+              onchange="if (this.form.declaracaoId) this.form.declaracaoId.value=''; this.form.submit()"
+            >
               <option value="">Todas</option>
               <% clausulas.forEach((clausula) => { %>
               <option value="<%= clausula.id %>" <%= Number(selectedClausula) === clausula.id ? 'selected' : '' %>>
@@ -125,18 +130,62 @@
               <% }); %>
             </select>
           </div>
+          <% if (declaracoes.length > 0) { %>
+          <div class="col-12">
+            <label for="filtroDeclaracao" class="form-label">Declaração</label>
+            <select
+              class="form-select"
+              id="filtroDeclaracao"
+              name="declaracaoId"
+              onchange="this.form.submit()"
+            >
+              <option value="">Todas</option>
+              <% declaracoes.forEach((declaracao) => { %>
+              <option
+                value="<%= declaracao.id %>"
+                <%= Number(selectedDeclaracaoId) === declaracao.id ? 'selected' : '' %>
+              >
+                <%= declaracao.titulo %>
+              </option>
+              <% }); %>
+            </select>
+          </div>
+          <% } %>
           <% if (selectedEscritura || selectedClausula) { %>
           <div class="col-12">
             <a class="btn btn-outline-secondary" href="/declaracoes">Limpar filtros</a>
           </div>
           <% } %>
         </form>
+        <% if (declaracaoVisualizada) { %>
+        <div class="card border-primary mb-4">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+              <div>
+                <h5 class="card-title mb-1"><%= declaracaoVisualizada.titulo %></h5>
+                <p class="card-subtitle text-muted small mb-2">
+                  Escritura: <%= declaracaoVisualizada.escritura_nome || '—' %> · Cláusula:
+                  <%= declaracaoVisualizada.clausula_nome || '—' %>
+                </p>
+              </div>
+              <span class="badge text-bg-light">
+                Criado por: <%= declaracaoVisualizada.autor || '—' %>
+              </span>
+            </div>
+            <p class="card-text declaracao-texto"><%= declaracaoVisualizada.texto %></p>
+          </div>
+        </div>
+        <% } else if (declaracoes.length > 0) { %>
+        <p class="text-muted">Selecione uma declaração para visualizar os detalhes.</p>
+        <% } %>
         <% if (declaracoes.length === 0) { %>
         <p class="text-muted">Nenhuma declaração cadastrada.</p>
         <% } else { %>
         <div class="list-group">
           <% declaracoes.forEach((declaracao) => { %>
-          <div class="list-group-item list-group-item-action flex-column align-items-start">
+          <div
+            class="list-group-item list-group-item-action flex-column align-items-start <%= Number(selectedDeclaracaoId) === declaracao.id ? 'active-declaracao' : '' %>"
+          >
             <div class="d-flex w-100 justify-content-between">
               <h5 class="mb-1"><%= declaracao.titulo || 'Sem título' %></h5>
               <small class="text-muted">Por: <%= declaracao.autor || '—' %></small>

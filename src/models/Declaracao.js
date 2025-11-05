@@ -20,7 +20,16 @@ const findAll = (clausulaId = null) =>
 
 const findById = (id) =>
   new Promise((resolve, reject) => {
-    db.get('SELECT * FROM declaracoes WHERE id = ?', [id], (err, row) => {
+    const query = `
+      SELECT d.*, c.nome AS clausula_nome, e.nome AS escritura_nome, u.username AS autor
+      FROM declaracoes d
+      LEFT JOIN clausulas c ON c.id = d.clausula_id
+      LEFT JOIN escrituras e ON e.id = c.escritura_id
+      LEFT JOIN users u ON u.id = d.criado_por
+      WHERE d.id = ?
+    `;
+
+    db.get(query, [id], (err, row) => {
       if (err) return reject(err);
       resolve(row);
     });

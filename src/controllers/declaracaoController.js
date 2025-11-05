@@ -3,12 +3,22 @@ const Clausula = require('../models/Clausula');
 const Escritura = require('../models/Escritura');
 
 const list = async (req, res) => {
-  const { escrituraId, clausulaId } = req.query;
+  const { escrituraId, clausulaId, declaracaoId } = req.query;
 
   try {
     const escrituras = await Escritura.findAll();
     const clausulas = await Clausula.findAll(escrituraId || null);
     const declaracoes = await Declaracao.findAll(clausulaId || null);
+
+    let declaracaoVisualizada = null;
+    if (declaracaoId) {
+      const declaracaoSelecionada = declaracoes.find(
+        (item) => item.id === Number(declaracaoId)
+      );
+
+      declaracaoVisualizada =
+        declaracaoSelecionada || (await Declaracao.findById(declaracaoId));
+    }
 
     res.render('declaracoes', {
       title: 'Declarações',
@@ -18,7 +28,9 @@ const list = async (req, res) => {
       declaracoes,
       selectedEscritura: escrituraId || '',
       selectedClausula: clausulaId || '',
-      selectedDeclaracao: null,
+      editingDeclaracao: null,
+      selectedDeclaracaoId: declaracaoId || '',
+      declaracaoVisualizada,
       error: null
     });
   } catch (error) {
@@ -31,7 +43,9 @@ const list = async (req, res) => {
       declaracoes: [],
       selectedEscritura: '',
       selectedClausula: '',
-      selectedDeclaracao: null,
+      editingDeclaracao: null,
+      selectedDeclaracaoId: '',
+      declaracaoVisualizada: null,
       error: 'Não foi possível carregar as declarações.'
     });
   }
@@ -47,8 +61,15 @@ const create = async (req, res) => {
   }
 
   try {
-    await Declaracao.create(clausulaId, tituloLimpo, textoLimpo, req.session.userId);
-    res.redirect(`/declaracoes?clausulaId=${clausulaId}`);
+    const novaDeclaracao = await Declaracao.create(
+      clausulaId,
+      tituloLimpo,
+      textoLimpo,
+      req.session.userId
+    );
+    res.redirect(
+      `/declaracoes?clausulaId=${clausulaId}&declaracaoId=${novaDeclaracao.id}`
+    );
   } catch (error) {
     console.error('Erro ao criar declaração:', error);
     res.redirect('/declaracoes');
@@ -83,7 +104,9 @@ const edit = async (req, res) => {
       declaracoes,
       selectedEscritura: escrituraSelecionada || '',
       selectedClausula: clausulaSelecionada || '',
-      selectedDeclaracao: declaracao,
+      editingDeclaracao: declaracao,
+      selectedDeclaracaoId: declaracao.id,
+      declaracaoVisualizada: declaracao,
       error: null
     });
   } catch (error) {
@@ -109,7 +132,9 @@ const update = async (req, res) => {
     }
 
     await Declaracao.update(id, tituloLimpo, textoLimpo);
-    res.redirect(`/declaracoes?clausulaId=${declaracao.clausula_id}`);
+    res.redirect(
+      `/declaracoes?clausulaId=${declaracao.clausula_id}&declaracaoId=${id}`
+    );
   } catch (error) {
     console.error('Erro ao atualizar declaração:', error);
     res.redirect('/declaracoes');

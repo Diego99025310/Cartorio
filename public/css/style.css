@@ -19,3 +19,8 @@ body {
 .declaracao-texto {
   white-space: pre-wrap;
 }
+
+.active-declaracao {
+  border-left: 4px solid #0d6efd;
+  background-color: #f0f6ff;
+}

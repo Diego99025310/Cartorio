@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const { Readable } = require('stream');
 const { db } = require('../database');
 
 let csvParser;
@@ -59,15 +60,49 @@ const inserirVariacao = ({
     );
   });
 
-const importarVariacoes = (arquivoCsv) =>
-  new Promise((resolve, reject) => {
-    const caminhoArquivo = path.resolve(arquivoCsv);
-    const registros = [];
+const processarRegistros = async (registros) => {
+  let importadas = 0;
+  let ignoradas = 0;
 
-    const stream = fs.createReadStream(caminhoArquivo);
-    stream.on('error', (error) => {
-      reject(error);
-    });
+  for (const registro of registros) {
+    const palavraBase = normalizarCampo(registro.palavra_base);
+    if (!palavraBase) {
+      ignoradas += 1;
+      continue;
+    }
+
+    const dados = {
+      palavra_base: palavraBase,
+      masc_sing: normalizarCampo(registro.masc_sing),
+      fem_sing: normalizarCampo(registro.fem_sing),
+      masc_plur: normalizarCampo(registro.masc_plur),
+      fem_plur: normalizarCampo(registro.fem_plur)
+    };
+
+    const existe = await verificarExistencia(palavraBase);
+    if (existe) {
+      ignoradas += 1;
+      continue;
+    }
+
+    const inserida = await inserirVariacao(dados);
+    if (inserida) {
+      importadas += 1;
+    } else {
+      ignoradas += 1;
+    }
+  }
+
+  console.log(
+    `Importação concluída: ${importadas} inseridas, ${ignoradas} ignoradas.`
+  );
+
+  return { importadas, ignoradas };
+};
+
+const carregarRegistrosDoStream = (stream) =>
+  new Promise((resolve, reject) => {
+    const registros = [];
 
     stream
       .pipe(
@@ -86,49 +121,35 @@ const importarVariacoes = (arquivoCsv) =>
       .on('error', (error) => {
         reject(error);
       })
-      .on('end', async () => {
-        let importadas = 0;
-        let ignoradas = 0;
-
-        try {
-          for (const registro of registros) {
-            const palavraBase = normalizarCampo(registro.palavra_base);
-            if (!palavraBase) {
-              ignoradas += 1;
-              continue;
-            }
-
-            const dados = {
-              palavra_base: palavraBase,
-              masc_sing: normalizarCampo(registro.masc_sing),
-              fem_sing: normalizarCampo(registro.fem_sing),
-              masc_plur: normalizarCampo(registro.masc_plur),
-              fem_plur: normalizarCampo(registro.fem_plur)
-            };
-
-            // Verificação explícita de duplicidade sensível a maiúsculas/minúsculas
-            const existe = await verificarExistencia(palavraBase);
-            if (existe) {
-              ignoradas += 1;
-              continue;
-            }
-
-            const inserida = await inserirVariacao(dados);
-            if (inserida) {
-              importadas += 1;
-            } else {
-              ignoradas += 1;
-            }
-          }
-
-          console.log(
-            `Importação concluída: ${importadas} inseridas, ${ignoradas} ignoradas.`
-          );
-          resolve({ importadas, ignoradas });
-        } catch (error) {
-          reject(error);
-        }
+      .on('end', () => {
+        resolve(registros);
       });
   });
 
-module.exports = { importarVariacoes };
+const importarVariacoesDeArquivo = async (arquivoCsv) => {
+  const caminhoArquivo = path.resolve(arquivoCsv);
+  const stream = fs.createReadStream(caminhoArquivo);
+
+  const registros = await carregarRegistrosDoStream(stream);
+  return processarRegistros(registros);
+};
+
+const importarVariacoesDeTexto = async (conteudoCsv) => {
+  if (typeof conteudoCsv !== 'string') {
+    throw new Error('O conteúdo para importação deve ser uma string.');
+  }
+
+  const textoLimpo = conteudoCsv
+    .split(/\r?\n/)
+    .map((linha) => removerBom(linha))
+    .join('\n');
+
+  const stream = Readable.from(textoLimpo);
+  const registros = await carregarRegistrosDoStream(stream);
+  return processarRegistros(registros);
+};
+
+module.exports = {
+  importarVariacoesDeArquivo,
+  importarVariacoesDeTexto
+};

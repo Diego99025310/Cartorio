@@ -15,7 +15,6 @@ router.delete('/:id', ensureMaster, declaracaoController.remove);
 router.post(
   '/importar-variacoes',
   ensureMaster,
-  csvUploadMiddleware,
   declaracaoController.importarVariacoesCsv
 );
 

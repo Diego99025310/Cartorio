@@ -93,23 +93,23 @@
     </div>
     <div class="card shadow-sm mt-4">
       <div class="card-body">
-        <h2 class="h5 mb-3">Importar variações via CSV</h2>
-        <form action="/declaracoes/importar-variacoes" method="POST" enctype="multipart/form-data">
+        <h2 class="h5 mb-3">Importar variações (colar CSV)</h2>
+        <form action="/declaracoes/importar-variacoes" method="POST">
           <div class="mb-3">
-            <label for="arquivo_csv" class="form-label">Arquivo CSV</label>
-            <input
+            <label for="conteudo_variacoes" class="form-label">Conteúdo das variações</label>
+            <textarea
               class="form-control"
-              type="file"
-              id="arquivo_csv"
-              name="arquivo_csv"
-              accept=".csv,text/csv"
+              id="conteudo_variacoes"
+              name="conteudo_variacoes"
+              rows="6"
+              placeholder="palavra_base,masc_sing,fem_sing,masc_plur,fem_plur\nO,O,A,Os,As"
               required
-            />
+            ></textarea>
             <div class="form-text">
-              Utilize o layout: palavra_base, masc_sing, fem_sing, masc_plur, fem_plur.
+              Cole aqui os dados no mesmo formato do CSV: palavra_base, masc_sing, fem_sing, masc_plur, fem_plur.
             </div>
           </div>
-          <button type="submit" class="btn btn-outline-primary w-100">Importar CSV</button>
+          <button type="submit" class="btn btn-outline-primary w-100">Importar variações</button>
         </form>
       </div>
     </div>

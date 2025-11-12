@@ -4,7 +4,7 @@ const Clausula = require('../models/Clausula');
 const Escritura = require('../models/Escritura');
 const { gerarDeclaracao } = require('../services/gerarDeclaracao');
 const { verificarPlaceholdersNoTexto } = require('../services/validarPlaceholders');
-const { importarVariacoes } = require('../services/importarVariacoes');
+const { importarVariacoesDeTexto } = require('../services/importarVariacoes');
 
 const normalizarGenero = (valor) => (valor && String(valor).toUpperCase() === 'F' ? 'F' : 'M');
 const normalizarNumero = (valor) => (valor && String(valor).toUpperCase() === 'P' ? 'P' : 'S');
@@ -283,32 +283,27 @@ const remove = async (req, res) => {
 };
 
 const importarVariacoesCsv = async (req, res) => {
-  if (!req.file) {
+  const { conteudo_variacoes: conteudoVariacoes } = req.body;
+
+  if (typeof conteudoVariacoes !== 'string' || !conteudoVariacoes.trim()) {
     req.session.declaracoesFeedback = {
-      errorMessage: 'Selecione um arquivo CSV para realizar a importação.'
+      errorMessage:
+        'Informe as variações no formato CSV (palavra_base, masc_sing, fem_sing, masc_plur, fem_plur).'
     };
     return res.redirect('/declaracoes');
   }
 
   try {
-    const resultado = await importarVariacoes(req.file.path);
+    const resultado = await importarVariacoesDeTexto(conteudoVariacoes);
     req.session.declaracoesFeedback = {
       successMessage: `Importação concluída: ${resultado.importadas} registradas, ${resultado.ignoradas} ignoradas.`
     };
   } catch (error) {
-    console.error('Erro ao importar variações por upload:', error);
+    console.error('Erro ao importar variações a partir do conteúdo informado:', error);
     req.session.declaracoesFeedback = {
       errorMessage:
-        'Não foi possível importar o arquivo CSV. Verifique o formato e tente novamente.'
+        'Não foi possível processar as variações informadas. Verifique o formato e tente novamente.'
     };
-  } finally {
-    try {
-      await fs.unlink(req.file.path);
-    } catch (cleanupError) {
-      if (cleanupError && cleanupError.code !== 'ENOENT') {
-        console.warn('Não foi possível remover o arquivo temporário:', cleanupError);
-      }
-    }
   }
 
   res.redirect('/declaracoes');

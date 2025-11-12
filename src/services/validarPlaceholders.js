@@ -1,18 +1,20 @@
-const { extrairPlaceholders } = require('./gerarDeclaracao');
+const { extrairPlaceholders, obterPalavraBaseDoPlaceholder } = require('./gerarDeclaracao');
 const { findExistingBaseWords } = require('../models/VariacaoPalavra');
 
 const verificarPlaceholdersNoTexto = async (texto) => {
-  const placeholders = [...new Set(extrairPlaceholders(texto))];
-  if (placeholders.length === 0) {
+  const placeholdersBrutos = [...new Set(extrairPlaceholders(texto))];
+  if (placeholdersBrutos.length === 0) {
     return { placeholders: [], faltantes: [] };
   }
 
-  const existentes = await findExistingBaseWords(placeholders);
+  const palavrasBase = [...new Set(placeholdersBrutos.map(obterPalavraBaseDoPlaceholder))];
+
+  const existentes = await findExistingBaseWords(palavrasBase);
   const existentesSet = new Set(existentes);
-  const faltantes = placeholders.filter((placeholder) => !existentesSet.has(placeholder));
+  const faltantes = palavrasBase.filter((placeholder) => !existentesSet.has(placeholder));
 
   return {
-    placeholders,
+    placeholders: palavrasBase,
     faltantes
   };
 };

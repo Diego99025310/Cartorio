@@ -262,52 +262,7 @@
         <% if (declaracoes.length === 0) { %>
         <p class="text-muted">Nenhuma declaração cadastrada.</p>
         <% } else { %>
-        <div class="list-group">
-          <% declaracoes.forEach((declaracao) => { %>
-          <div
-            class="list-group-item list-group-item-action flex-column align-items-start <%= Number(selectedDeclaracaoId) === declaracao.id ? 'active-declaracao' : '' %>"
-          >
-            <div class="d-flex w-100 justify-content-between">
-              <h5 class="mb-1"><%= declaracao.titulo || 'Sem título' %></h5>
-              <small class="text-muted">Por: <%= declaracao.autor || '—' %></small>
-            </div>
-            <p class="mb-1 text-muted small">
-              Cláusula: <%= declaracao.clausula_nome || 'Cláusula não informada' %>
-            </p>
-            <p class="mb-1 declaracao-texto">
-              <%= declaracao.texto_renderizado || declaracao.texto %>
-            </p>
-            <% if (
-              currentUser.isMaster &&
-              declaracao.texto_renderizado &&
-              declaracao.texto_renderizado !== declaracao.texto
-            ) { %>
-            <p class="mb-1 text-muted small fst-italic">
-              Modelo original: <span class="font-monospace"><%= declaracao.texto %></span>
-            </p>
-            <% } %>
-            <small class="text-muted">Escritura: <%= declaracao.escritura_nome || '—' %></small>
-            <% if (currentUser.isMaster) { %>
-            <div class="mt-3">
-              <a
-                class="btn btn-sm btn-outline-primary"
-                href="/declaracoes/<%= declaracao.id %>/edit?clausulaId=<%= selectedClausula || declaracao.clausula_id %>&escrituraId=<%= selectedEscritura %>"
-              >
-                Editar
-              </a>
-              <form
-                action="/declaracoes/<%= declaracao.id %>?_method=DELETE"
-                method="POST"
-                class="d-inline"
-                onsubmit="return confirm('Deseja remover esta declaração?');"
-              >
-                <button type="submit" class="btn btn-sm btn-outline-danger">Excluir</button>
-              </form>
-            </div>
-            <% } %>
-          </div>
-          <% }); %>
-        </div>
+
         <% } %>
       </div>
     </div>

@@ -1,6 +1,7 @@
 node_modules/
 src/sessions.db
 sessions/
+uploads/
 .env
 npm-debug.log*
 .DS_Store

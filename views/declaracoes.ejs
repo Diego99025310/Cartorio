@@ -161,27 +161,51 @@
             </select>
           </div>
           <div class="col-12 col-md-6">
-            <label for="filtroGenero" class="form-label">Gênero</label>
+            <label for="filtroGeneroTransmitente" class="form-label">Gênero (Transmitente)</label>
             <select
               class="form-select"
-              id="filtroGenero"
-              name="genero"
+              id="filtroGeneroTransmitente"
+              name="generoTransmitente"
               onchange="this.form.submit()"
             >
-              <option value="M" <%= selectedGenero === 'M' ? 'selected' : '' %>>Masculino</option>
-              <option value="F" <%= selectedGenero === 'F' ? 'selected' : '' %>>Feminino</option>
+              <option value="M" <%= selectedGeneroTransmitente === 'M' ? 'selected' : '' %>>Masculino</option>
+              <option value="F" <%= selectedGeneroTransmitente === 'F' ? 'selected' : '' %>>Feminino</option>
             </select>
           </div>
           <div class="col-12 col-md-6">
-            <label for="filtroNumero" class="form-label">Número</label>
+            <label for="filtroNumeroTransmitente" class="form-label">Número (Transmitente)</label>
             <select
               class="form-select"
-              id="filtroNumero"
-              name="numero"
+              id="filtroNumeroTransmitente"
+              name="numeroTransmitente"
               onchange="this.form.submit()"
             >
-              <option value="S" <%= selectedNumero === 'S' ? 'selected' : '' %>>Singular</option>
-              <option value="P" <%= selectedNumero === 'P' ? 'selected' : '' %>>Plural</option>
+              <option value="S" <%= selectedNumeroTransmitente === 'S' ? 'selected' : '' %>>Singular</option>
+              <option value="P" <%= selectedNumeroTransmitente === 'P' ? 'selected' : '' %>>Plural</option>
+            </select>
+          </div>
+          <div class="col-12 col-md-6">
+            <label for="filtroGeneroAdquirente" class="form-label">Gênero (Adquirente)</label>
+            <select
+              class="form-select"
+              id="filtroGeneroAdquirente"
+              name="generoAdquirente"
+              onchange="this.form.submit()"
+            >
+              <option value="M" <%= selectedGeneroAdquirente === 'M' ? 'selected' : '' %>>Masculino</option>
+              <option value="F" <%= selectedGeneroAdquirente === 'F' ? 'selected' : '' %>>Feminino</option>
+            </select>
+          </div>
+          <div class="col-12 col-md-6">
+            <label for="filtroNumeroAdquirente" class="form-label">Número (Adquirente)</label>
+            <select
+              class="form-select"
+              id="filtroNumeroAdquirente"
+              name="numeroAdquirente"
+              onchange="this.form.submit()"
+            >
+              <option value="S" <%= selectedNumeroAdquirente === 'S' ? 'selected' : '' %>>Singular</option>
+              <option value="P" <%= selectedNumeroAdquirente === 'P' ? 'selected' : '' %>>Plural</option>
             </select>
           </div>
           <% if (declaracoes.length > 0) { %>
@@ -227,8 +251,14 @@
                   Criado por: <%= declaracaoVisualizada.autor || '—' %>
                 </span>
                 <span class="badge text-bg-info text-wrap">
-                  Visualização: <%= selectedGenero === 'F' ? 'Feminino' : 'Masculino' %> ·
-                  <%= selectedNumero === 'P' ? 'Plural' : 'Singular' %>
+                  Transmitente:
+                  <%= selectedGeneroTransmitente === 'F' ? 'Feminino' : 'Masculino' %> ·
+                  <%= selectedNumeroTransmitente === 'P' ? 'Plural' : 'Singular' %>
+                </span>
+                <span class="badge text-bg-info text-wrap">
+                  Adquirente:
+                  <%= selectedGeneroAdquirente === 'F' ? 'Feminino' : 'Masculino' %> ·
+                  <%= selectedNumeroAdquirente === 'P' ? 'Plural' : 'Singular' %>
                 </span>
                 <% if (declaracaoVisualizada.texto) { %>
                 <button

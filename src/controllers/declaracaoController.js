@@ -13,8 +13,10 @@ const montarContextoDeclaracoes = async ({
   selectedEscritura,
   selectedClausula,
   selectedDeclaracaoId,
-  genero,
-  numero
+  generoTransmitente,
+  numeroTransmitente,
+  generoAdquirente,
+  numeroAdquirente
 }) => {
   const [escrituras, clausulas, declaracoes] = await Promise.all([
     Escritura.findAll(),
@@ -22,10 +24,16 @@ const montarContextoDeclaracoes = async ({
     Declaracao.findAll(selectedClausula || null)
   ]);
 
+  const configuracaoGenero = {
+    padrao: { genero: generoTransmitente, numero: numeroTransmitente },
+    transmitente: { genero: generoTransmitente, numero: numeroTransmitente },
+    adquirente: { genero: generoAdquirente, numero: numeroAdquirente }
+  };
+
   const declaracoesRenderizadas = await Promise.all(
     declaracoes.map(async (item) => ({
       ...item,
-      texto_renderizado: await gerarDeclaracao(item.texto, genero, numero)
+      texto_renderizado: await gerarDeclaracao(item.texto, configuracaoGenero)
     }))
   );
 
@@ -40,7 +48,10 @@ const montarContextoDeclaracoes = async ({
       if (declaracao) {
         declaracaoVisualizada = {
           ...declaracao,
-          texto_renderizado: await gerarDeclaracao(declaracao.texto, genero, numero)
+          texto_renderizado: await gerarDeclaracao(
+            declaracao.texto,
+            configuracaoGenero
+          )
         };
       }
     }
@@ -55,7 +66,15 @@ const montarContextoDeclaracoes = async ({
 };
 
 const list = async (req, res) => {
-  const { escrituraId, clausulaId, declaracaoId, genero, numero } = req.query;
+  const {
+    escrituraId,
+    clausulaId,
+    declaracaoId,
+    generoTransmitente,
+    numeroTransmitente,
+    generoAdquirente,
+    numeroAdquirente
+  } = req.query;
 
   const feedback = req.session.declaracoesFeedback || {};
   delete req.session.declaracoesFeedback;
@@ -63,8 +82,18 @@ const list = async (req, res) => {
   const selectedEscritura = escrituraId || feedback.selectedEscritura || '';
   const selectedClausula = clausulaId || feedback.selectedClausula || '';
   const selectedDeclaracaoId = declaracaoId || feedback.selectedDeclaracaoId || '';
-  const selectedGenero = normalizarGenero(genero || feedback.genero);
-  const selectedNumero = normalizarNumero(numero || feedback.numero);
+  const selectedGeneroTransmitente = normalizarGenero(
+    generoTransmitente || feedback.generoTransmitente || feedback.genero
+  );
+  const selectedNumeroTransmitente = normalizarNumero(
+    numeroTransmitente || feedback.numeroTransmitente || feedback.numero
+  );
+  const selectedGeneroAdquirente = normalizarGenero(
+    generoAdquirente || feedback.generoAdquirente || feedback.genero
+  );
+  const selectedNumeroAdquirente = normalizarNumero(
+    numeroAdquirente || feedback.numeroAdquirente || feedback.numero
+  );
 
   const mensagemErro = feedback.errorMessage || null;
   const mensagemSucesso = feedback.successMessage || null;
@@ -76,8 +105,10 @@ const list = async (req, res) => {
         selectedEscritura,
         selectedClausula,
         selectedDeclaracaoId,
-        genero: selectedGenero,
-        numero: selectedNumero
+        generoTransmitente: selectedGeneroTransmitente,
+        numeroTransmitente: selectedNumeroTransmitente,
+        generoAdquirente: selectedGeneroAdquirente,
+        numeroAdquirente: selectedNumeroAdquirente
       });
 
     res.render('declaracoes', {
@@ -91,8 +122,10 @@ const list = async (req, res) => {
       editingDeclaracao: null,
       selectedDeclaracaoId,
       declaracaoVisualizada,
-      selectedGenero,
-      selectedNumero,
+      selectedGeneroTransmitente,
+      selectedNumeroTransmitente,
+      selectedGeneroAdquirente,
+      selectedNumeroAdquirente,
       error: mensagemErro,
       success: mensagemSucesso,
       formData
@@ -110,8 +143,10 @@ const list = async (req, res) => {
       editingDeclaracao: null,
       selectedDeclaracaoId: '',
       declaracaoVisualizada: null,
-      selectedGenero: normalizarGenero(),
-      selectedNumero: normalizarNumero(),
+      selectedGeneroTransmitente: normalizarGenero(),
+      selectedNumeroTransmitente: normalizarNumero(),
+      selectedGeneroAdquirente: normalizarGenero(),
+      selectedNumeroAdquirente: normalizarNumero(),
       error: 'Não foi possível carregar as declarações.',
       success: null,
       formData: null
@@ -157,7 +192,14 @@ const create = async (req, res) => {
 
 const edit = async (req, res) => {
   const { id } = req.params;
-  const { escrituraId, clausulaId, genero, numero } = req.query;
+  const {
+    escrituraId,
+    clausulaId,
+    generoTransmitente,
+    numeroTransmitente,
+    generoAdquirente,
+    numeroAdquirente
+  } = req.query;
 
   try {
     const declaracao = await Declaracao.findById(id);
@@ -169,16 +211,20 @@ const edit = async (req, res) => {
     const clausulaRegistro = await Clausula.findById(clausulaSelecionada);
     const escrituraSelecionada = escrituraId || (clausulaRegistro ? clausulaRegistro.escritura_id : '');
 
-    const selectedGenero = normalizarGenero(genero);
-    const selectedNumero = normalizarNumero(numero);
+    const selectedGeneroTransmitente = normalizarGenero(generoTransmitente);
+    const selectedNumeroTransmitente = normalizarNumero(numeroTransmitente);
+    const selectedGeneroAdquirente = normalizarGenero(generoAdquirente);
+    const selectedNumeroAdquirente = normalizarNumero(numeroAdquirente);
 
     const { escrituras, clausulas, declaracoes, declaracaoVisualizada } =
       await montarContextoDeclaracoes({
         selectedEscritura: escrituraSelecionada || '',
         selectedClausula: clausulaSelecionada || '',
         selectedDeclaracaoId: id,
-        genero: selectedGenero,
-        numero: selectedNumero
+        generoTransmitente: selectedGeneroTransmitente,
+        numeroTransmitente: selectedNumeroTransmitente,
+        generoAdquirente: selectedGeneroAdquirente,
+        numeroAdquirente: selectedNumeroAdquirente
       });
 
     res.render('declaracoes', {
@@ -192,8 +238,10 @@ const edit = async (req, res) => {
       editingDeclaracao: declaracao,
       selectedDeclaracaoId: declaracao.id,
       declaracaoVisualizada: declaracaoVisualizada,
-      selectedGenero,
-      selectedNumero,
+      selectedGeneroTransmitente,
+      selectedNumeroTransmitente,
+      selectedGeneroAdquirente,
+      selectedNumeroAdquirente,
       error: null,
       success: null,
       formData: null
@@ -225,15 +273,27 @@ const update = async (req, res) => {
       const clausulaRegistro = await Clausula.findById(declaracao.clausula_id);
       const escrituraSelecionada = clausulaRegistro ? clausulaRegistro.escritura_id : '';
 
-      const selectedGenero = normalizarGenero(req.query.genero);
-      const selectedNumero = normalizarNumero(req.query.numero);
+      const selectedGeneroTransmitente = normalizarGenero(
+        req.query.generoTransmitente || req.query.genero
+      );
+      const selectedNumeroTransmitente = normalizarNumero(
+        req.query.numeroTransmitente || req.query.numero
+      );
+      const selectedGeneroAdquirente = normalizarGenero(
+        req.query.generoAdquirente || req.query.genero
+      );
+      const selectedNumeroAdquirente = normalizarNumero(
+        req.query.numeroAdquirente || req.query.numero
+      );
 
       const contexto = await montarContextoDeclaracoes({
         selectedEscritura: escrituraSelecionada || '',
         selectedClausula: declaracao.clausula_id,
         selectedDeclaracaoId: id,
-        genero: selectedGenero,
-        numero: selectedNumero
+        generoTransmitente: selectedGeneroTransmitente,
+        numeroTransmitente: selectedNumeroTransmitente,
+        generoAdquirente: selectedGeneroAdquirente,
+        numeroAdquirente: selectedNumeroAdquirente
       });
 
       return res.status(400).render('declaracoes', {
@@ -247,8 +307,10 @@ const update = async (req, res) => {
         editingDeclaracao: { ...declaracao, titulo: tituloLimpo, texto: textoLimpo },
         selectedDeclaracaoId: id,
         declaracaoVisualizada: contexto.declaracaoVisualizada,
-        selectedGenero,
-        selectedNumero,
+        selectedGeneroTransmitente,
+        selectedNumeroTransmitente,
+        selectedGeneroAdquirente,
+        selectedNumeroAdquirente,
         error: `Não foi possível salvar. Cadastre primeiro as variações para: ${faltantes.join(', ')}.`,
         success: null,
         formData: null

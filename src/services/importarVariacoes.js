@@ -139,12 +139,22 @@ const importarVariacoesDeTexto = async (conteudoCsv) => {
     throw new Error('O conteúdo para importação deve ser uma string.');
   }
 
-  const textoLimpo = conteudoCsv
-    .split(/\r?\n/)
-    .map((linha) => removerBom(linha))
-    .join('\n');
+  const linhasBrutas = conteudoCsv.split(/\r?\n/).map((linha) => removerBom(linha));
+  const linhasNaoVazias = linhasBrutas.filter((linha) => linha.trim() !== '');
 
-  const stream = Readable.from(textoLimpo);
+  const primeiraLinha = linhasNaoVazias[0] || '';
+  const possuiCabecalho = /^palavra_base\s*,/i.test(primeiraLinha);
+
+  const corpoTexto = linhasBrutas.join('\n');
+  const textoComCabecalho = possuiCabecalho
+    ? corpoTexto
+    : `palavra_base,masc_sing,fem_sing,masc_plur,fem_plur\n${corpoTexto}`;
+
+  const textoNormalizado = textoComCabecalho.endsWith('\n')
+    ? textoComCabecalho
+    : `${textoComCabecalho}\n`;
+
+  const stream = Readable.from(textoNormalizado);
   const registros = await carregarRegistrosDoStream(stream);
   return processarRegistros(registros);
 };

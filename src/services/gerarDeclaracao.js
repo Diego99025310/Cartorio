@@ -1,26 +1,19 @@
-const { db } = require('../database');
+const { findByBaseWord } = require('../models/VariacaoPalavra');
 
 const COLUNAS = {
   M: { S: 'masc_sing', P: 'masc_plur' },
   F: { S: 'fem_sing', P: 'fem_plur' }
 };
 
-const obterVariacao = (palavraBase) =>
-  new Promise((resolve, reject) => {
-    db.get(
-      `SELECT palavra_base, masc_sing, fem_sing, masc_plur, fem_plur
-        FROM variacoes_palavras
-        WHERE palavra_base = ? COLLATE BINARY`,
-      [palavraBase],
-      (err, row) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(row || null);
-        }
-      }
-    );
-  });
+const PLACEHOLDER_REGEX = /\{([^{}]+)\}/g;
+
+const extrairPlaceholders = (textoModelo) => {
+  if (!textoModelo) {
+    return [];
+  }
+
+  return Array.from(textoModelo.matchAll(PLACEHOLDER_REGEX)).map((match) => match[1]);
+};
 
 const selecionarColuna = (genero, numero) => {
   const generoNormalizado = genero && String(genero).toUpperCase() === 'F' ? 'F' : 'M';
@@ -33,7 +26,7 @@ const gerarDeclaracao = async (textoModelo, genero, numero) => {
     return '';
   }
 
-  const placeholders = Array.from(textoModelo.matchAll(/\{([^{}]+)\}/g)).map((match) => match[1]);
+  const placeholders = extrairPlaceholders(textoModelo);
   if (placeholders.length === 0) {
     return textoModelo;
   }
@@ -41,7 +34,7 @@ const gerarDeclaracao = async (textoModelo, genero, numero) => {
   const unicos = [...new Set(placeholders)];
   const variacoes = await Promise.all(
     unicos.map(async (chave) => {
-      const variacao = await obterVariacao(chave);
+      const variacao = await findByBaseWord(chave);
       return [chave, variacao];
     })
   );
@@ -49,7 +42,7 @@ const gerarDeclaracao = async (textoModelo, genero, numero) => {
   const mapaVariacoes = new Map(variacoes);
   const colunaEscolhida = selecionarColuna(genero, numero);
 
-  const resultado = textoModelo.replace(/\{([^{}]+)\}/g, (original, chave) => {
+  const resultado = textoModelo.replace(PLACEHOLDER_REGEX, (original, chave) => {
     const variacao = mapaVariacoes.get(chave);
     if (!variacao) {
       return original;
@@ -73,4 +66,4 @@ const gerarDeclaracao = async (textoModelo, genero, numero) => {
   return resultado;
 };
 
-module.exports = { gerarDeclaracao };
+module.exports = { gerarDeclaracao, extrairPlaceholders };

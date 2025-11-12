@@ -1,6 +1,7 @@
 const express = require('express');
 const declaracaoController = require('../controllers/declaracaoController');
 const { ensureAuthenticated, ensureMaster } = require('../middlewares/authMiddleware');
+const csvUploadMiddleware = require('../middlewares/csvUploadMiddleware');
 
 const router = express.Router();
 

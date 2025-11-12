@@ -50,6 +50,17 @@ const initializeDatabase = () => {
       )
     `);
 
+    db.run(`
+      CREATE TABLE IF NOT EXISTS variacoes_palavras (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        palavra_base TEXT UNIQUE COLLATE BINARY,
+        masc_sing TEXT,
+        fem_sing TEXT,
+        masc_plur TEXT,
+        fem_plur TEXT
+      )
+    `);
+
     db.all('PRAGMA table_info(declaracoes)', (pragmaErr, columns) => {
       if (pragmaErr) {
         console.error('Erro ao inspecionar a tabela declaracoes:', pragmaErr);

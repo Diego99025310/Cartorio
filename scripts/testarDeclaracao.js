@@ -3,18 +3,35 @@ const { gerarDeclaracao } = require('../src/services/gerarDeclaracao');
 
 const executar = async () => {
   initializeDatabase();
-  const texto = '{O} {VENDEDOR} {vende} para {o} {COMPRADOR} o {IMÓVEL}.';
+  const texto = '1{O} 1{VENDEDOR} 1{vende} para 2{o} 2{COMPRADOR} o {IMÓVEL}.';
 
   const combinacoes = [
-    { genero: 'M', numero: 'S' },
-    { genero: 'F', numero: 'S' },
-    { genero: 'M', numero: 'P' },
-    { genero: 'F', numero: 'P' }
+    {
+      transmitente: { genero: 'M', numero: 'S' },
+      adquirente: { genero: 'F', numero: 'S' }
+    },
+    {
+      transmitente: { genero: 'F', numero: 'S' },
+      adquirente: { genero: 'M', numero: 'P' }
+    },
+    {
+      transmitente: { genero: 'M', numero: 'P' },
+      adquirente: { genero: 'F', numero: 'P' }
+    }
   ];
 
-  for (const { genero, numero } of combinacoes) {
-    const resultado = await gerarDeclaracao(texto, genero, numero);
-    console.log(`${genero}/${numero} => ${resultado}`);
+  for (const combinacao of combinacoes) {
+    const configuracao = {
+      padrao: combinacao.transmitente,
+      transmitente: combinacao.transmitente,
+      adquirente: combinacao.adquirente
+    };
+
+    const resultado = await gerarDeclaracao(texto, configuracao);
+    console.log(
+      `T: ${combinacao.transmitente.genero}/${combinacao.transmitente.numero} | ` +
+        `A: ${combinacao.adquirente.genero}/${combinacao.adquirente.numero} => ${resultado}`
+    );
   }
 };
 

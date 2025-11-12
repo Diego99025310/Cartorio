@@ -1,10 +1,54 @@
 const { gerarDeclaracao } = require('../services/gerarDeclaracao');
 
+const normalizarGenero = (valor) => (valor && String(valor).toUpperCase() === 'F' ? 'F' : 'M');
+const normalizarNumero = (valor) => (valor && String(valor).toUpperCase() === 'P' ? 'P' : 'S');
+
+const obterConfiguracaoParte = (combinada, genero, numero, fallback) => {
+  const base = fallback
+    ? {
+        genero: normalizarGenero(fallback.genero),
+        numero: normalizarNumero(fallback.numero)
+      }
+    : { genero: normalizarGenero(), numero: normalizarNumero() };
+
+  if (typeof combinada === 'string') {
+    const texto = combinada.trim().toUpperCase();
+    if (texto) {
+      let generoTexto;
+      let numeroTexto;
+
+      if (texto.includes('-') || texto.includes('_')) {
+        const partes = texto.split(/[-_]/).filter(Boolean);
+        [generoTexto, numeroTexto] = partes;
+      } else {
+        generoTexto = texto[0];
+        numeroTexto = texto[1];
+      }
+
+      return {
+        genero: normalizarGenero(generoTexto || base.genero),
+        numero: normalizarNumero(numeroTexto || base.numero)
+      };
+    }
+  }
+
+  if (genero || numero) {
+    return {
+      genero: normalizarGenero(genero || base.genero),
+      numero: normalizarNumero(numero || base.numero)
+    };
+  }
+
+  return base;
+};
+
 const testarDeclaracao = async (req, res) => {
   const {
     texto,
     genero,
     numero,
+    configTransmitente,
+    configAdquirente,
     generoTransmitente,
     numeroTransmitente,
     generoAdquirente,
@@ -16,16 +60,23 @@ const testarDeclaracao = async (req, res) => {
   }
 
   try {
-    const generoBase = generoTransmitente || genero;
-    const numeroBase = numeroTransmitente || numero;
+    const configuracaoTransmitente = obterConfiguracaoParte(
+      configTransmitente,
+      generoTransmitente || genero,
+      numeroTransmitente || numero
+    );
+
+    const configuracaoAdquirente = obterConfiguracaoParte(
+      configAdquirente,
+      generoAdquirente || configuracaoTransmitente.genero,
+      numeroAdquirente || configuracaoTransmitente.numero,
+      configuracaoTransmitente
+    );
 
     const configuracao = {
-      padrao: { genero: generoBase, numero: numeroBase },
-      transmitente: { genero: generoBase, numero: numeroBase },
-      adquirente: {
-        genero: generoAdquirente || generoBase,
-        numero: numeroAdquirente || numeroBase
-      }
+      padrao: configuracaoTransmitente,
+      transmitente: configuracaoTransmitente,
+      adquirente: configuracaoAdquirente
     };
 
     const resultado = await gerarDeclaracao(texto, configuracao);

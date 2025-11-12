@@ -3,8 +3,7 @@ const { gerarDeclaracao } = require('../src/services/gerarDeclaracao');
 
 const executar = async () => {
   initializeDatabase();
-  const texto =
-    '{transmitente:O} {transmitente:VENDEDOR} {transmitente:vende} para {adquirente:o} {adquirente:COMPRADOR} o {IMÓVEL}.';
+  const texto = '1{O} 1{VENDEDOR} 1{vende} para 2{o} 2{COMPRADOR} o {IMÓVEL}.';
 
   const combinacoes = [
     {

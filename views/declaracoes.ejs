@@ -161,51 +161,47 @@
             </select>
           </div>
           <div class="col-12 col-md-6">
-            <label for="filtroGeneroTransmitente" class="form-label">Gênero (Transmitente)</label>
+            <label for="filtroConfiguracaoTransmitente" class="form-label">Transmitente</label>
             <select
               class="form-select"
-              id="filtroGeneroTransmitente"
-              name="generoTransmitente"
+              id="filtroConfiguracaoTransmitente"
+              name="configTransmitente"
               onchange="this.form.submit()"
             >
-              <option value="M" <%= selectedGeneroTransmitente === 'M' ? 'selected' : '' %>>Masculino</option>
-              <option value="F" <%= selectedGeneroTransmitente === 'F' ? 'selected' : '' %>>Feminino</option>
+              <option value="MS" <%= selectedConfiguracaoTransmitente === 'MS' ? 'selected' : '' %>>
+                Masculino (Singular)
+              </option>
+              <option value="MP" <%= selectedConfiguracaoTransmitente === 'MP' ? 'selected' : '' %>>
+                Masculino (Plural)
+              </option>
+              <option value="FS" <%= selectedConfiguracaoTransmitente === 'FS' ? 'selected' : '' %>>
+                Feminino (Singular)
+              </option>
+              <option value="FP" <%= selectedConfiguracaoTransmitente === 'FP' ? 'selected' : '' %>>
+                Feminino (Plural)
+              </option>
             </select>
           </div>
           <div class="col-12 col-md-6">
-            <label for="filtroNumeroTransmitente" class="form-label">Número (Transmitente)</label>
+            <label for="filtroConfiguracaoAdquirente" class="form-label">Adquirente</label>
             <select
               class="form-select"
-              id="filtroNumeroTransmitente"
-              name="numeroTransmitente"
+              id="filtroConfiguracaoAdquirente"
+              name="configAdquirente"
               onchange="this.form.submit()"
             >
-              <option value="S" <%= selectedNumeroTransmitente === 'S' ? 'selected' : '' %>>Singular</option>
-              <option value="P" <%= selectedNumeroTransmitente === 'P' ? 'selected' : '' %>>Plural</option>
-            </select>
-          </div>
-          <div class="col-12 col-md-6">
-            <label for="filtroGeneroAdquirente" class="form-label">Gênero (Adquirente)</label>
-            <select
-              class="form-select"
-              id="filtroGeneroAdquirente"
-              name="generoAdquirente"
-              onchange="this.form.submit()"
-            >
-              <option value="M" <%= selectedGeneroAdquirente === 'M' ? 'selected' : '' %>>Masculino</option>
-              <option value="F" <%= selectedGeneroAdquirente === 'F' ? 'selected' : '' %>>Feminino</option>
-            </select>
-          </div>
-          <div class="col-12 col-md-6">
-            <label for="filtroNumeroAdquirente" class="form-label">Número (Adquirente)</label>
-            <select
-              class="form-select"
-              id="filtroNumeroAdquirente"
-              name="numeroAdquirente"
-              onchange="this.form.submit()"
-            >
-              <option value="S" <%= selectedNumeroAdquirente === 'S' ? 'selected' : '' %>>Singular</option>
-              <option value="P" <%= selectedNumeroAdquirente === 'P' ? 'selected' : '' %>>Plural</option>
+              <option value="MS" <%= selectedConfiguracaoAdquirente === 'MS' ? 'selected' : '' %>>
+                Masculino (Singular)
+              </option>
+              <option value="MP" <%= selectedConfiguracaoAdquirente === 'MP' ? 'selected' : '' %>>
+                Masculino (Plural)
+              </option>
+              <option value="FS" <%= selectedConfiguracaoAdquirente === 'FS' ? 'selected' : '' %>>
+                Feminino (Singular)
+              </option>
+              <option value="FP" <%= selectedConfiguracaoAdquirente === 'FP' ? 'selected' : '' %>>
+                Feminino (Plural)
+              </option>
             </select>
           </div>
           <% if (declaracoes.length > 0) { %>

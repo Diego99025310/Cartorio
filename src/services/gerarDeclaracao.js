@@ -5,15 +5,36 @@ const COLUNAS = {
   F: { S: 'fem_sing', P: 'fem_plur' }
 };
 
-const PLACEHOLDER_REGEX = /\{([^{}]+)\}/g;
-const PLACEHOLDER_ENTIDADE_REGEX = /^(transmitente|adquirente):(.+)$/i;
+const PLACEHOLDER_REGEX = /\{([^{}]+)\}|([12])\{([^{}]+)\}/g;
+const PLACEHOLDER_ENTIDADE_REGEX = /^(transmitente|adquirente|1|2):(.+)$/i;
+
+const criarRegexPlaceholders = () =>
+  new RegExp(PLACEHOLDER_REGEX.source, PLACEHOLDER_REGEX.flags);
 
 const extrairPlaceholders = (textoModelo) => {
   if (!textoModelo) {
     return [];
   }
 
-  return Array.from(textoModelo.matchAll(PLACEHOLDER_REGEX)).map((match) => match[1].trim());
+  const regex = criarRegexPlaceholders();
+  const encontrados = [];
+  let match;
+
+  while ((match = regex.exec(textoModelo)) !== null) {
+    if (match[2]) {
+      const chave = match[3] ? match[3].trim() : '';
+      if (chave) {
+        encontrados.push(`${match[2]}:${chave}`);
+      }
+    } else if (match[1]) {
+      const chave = match[1].trim();
+      if (chave) {
+        encontrados.push(chave);
+      }
+    }
+  }
+
+  return encontrados;
 };
 
 const selecionarColuna = (genero, numero) => {
@@ -32,8 +53,19 @@ const interpretarPlaceholder = (placeholderBruto) => {
     return { entidade: 'padrao', chave: placeholderBruto.trim() };
   }
 
-  const [, entidade, chave] = match;
-  return { entidade: entidade.toLowerCase(), chave: chave.trim() };
+  const [, entidadeCapturada, chave] = match;
+  const entidadeNormalizada = entidadeCapturada.toLowerCase();
+
+  let entidadeFinal;
+  if (entidadeNormalizada === '1') {
+    entidadeFinal = 'transmitente';
+  } else if (entidadeNormalizada === '2') {
+    entidadeFinal = 'adquirente';
+  } else {
+    entidadeFinal = entidadeNormalizada;
+  }
+
+  return { entidade: entidadeFinal, chave: chave.trim() };
 };
 
 const obterPalavraBaseDoPlaceholder = (placeholderBruto) =>
@@ -98,28 +130,46 @@ const gerarDeclaracao = async (textoModelo, generoOuConfiguracao, numero) => {
 
   const mapaVariacoes = new Map(variacoes);
 
-  const resultado = textoModelo.replace(PLACEHOLDER_REGEX, (original, chaveBruta) => {
-    const { entidade, chave } = interpretarPlaceholder(chaveBruta);
-    const variacao = mapaVariacoes.get(chave);
-    if (!variacao) {
-      return original;
+  const resultado = textoModelo.replace(
+    criarRegexPlaceholders(),
+    (original, placeholderPadrao, prefixoNumerico, placeholderNumerico) => {
+      let entidade;
+      let chave;
+
+      if (prefixoNumerico) {
+        entidade = prefixoNumerico === '1' ? 'transmitente' : 'adquirente';
+        chave = (placeholderNumerico || '').trim();
+      } else {
+        const interpretado = interpretarPlaceholder(placeholderPadrao);
+        entidade = interpretado.entidade;
+        chave = interpretado.chave;
+      }
+
+      if (!chave) {
+        return original;
+      }
+
+      const variacao = mapaVariacoes.get(chave);
+      if (!variacao) {
+        return original;
+      }
+
+      const coluna = colunasPorEntidade[entidade] || colunasPorEntidade.padrao;
+      const substituto = variacao[coluna];
+      if (substituto && substituto.trim() !== '') {
+        return substituto;
+      }
+
+      const fallback =
+        variacao.masc_sing ||
+        variacao.fem_sing ||
+        variacao.masc_plur ||
+        variacao.fem_plur ||
+        chave;
+
+      return fallback;
     }
-
-    const coluna = colunasPorEntidade[entidade] || colunasPorEntidade.padrao;
-    const substituto = variacao[coluna];
-    if (substituto && substituto.trim() !== '') {
-      return substituto;
-    }
-
-    const fallback =
-      variacao.masc_sing ||
-      variacao.fem_sing ||
-      variacao.masc_plur ||
-      variacao.fem_plur ||
-      chave;
-
-    return fallback;
-  });
+  );
 
   return resultado;
 };

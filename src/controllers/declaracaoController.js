@@ -1,3 +1,4 @@
+const fs = require('fs/promises');
 const Declaracao = require('../models/Declaracao');
 const Clausula = require('../models/Clausula');
 const Escritura = require('../models/Escritura');

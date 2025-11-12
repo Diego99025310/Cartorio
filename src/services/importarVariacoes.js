@@ -10,11 +10,14 @@ try {
   csvParser = require('../lib/simpleCsvParser');
 }
 
+const removerBom = (valor) =>
+  typeof valor === 'string' ? valor.replace(/^\uFEFF/, '') : valor;
+
 const normalizarCampo = (valor) => {
   if (valor == null) {
     return null;
   }
-  const texto = String(valor).trim();
+  const texto = removerBom(String(valor)).trim();
   return texto === '' ? null : texto;
 };
 
@@ -67,7 +70,16 @@ const importarVariacoes = (arquivoCsv) =>
     });
 
     stream
-      .pipe(csvParser({ mapHeaders: ({ header }) => (header ? header.trim() : header) }))
+      .pipe(
+        csvParser({
+          mapHeaders: ({ header }) => {
+            if (!header) {
+              return header;
+            }
+            return removerBom(header).trim();
+          }
+        })
+      )
       .on('data', (row) => {
         registros.push(row);
       })

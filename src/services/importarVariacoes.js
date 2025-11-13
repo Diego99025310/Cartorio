@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { Readable } = require('stream');
-const { db } = require('../database');
+const { criarOuObterVariacao } = require('./variacoesPalavrasService');
 
 let csvParser;
 try {
@@ -22,44 +22,6 @@ const normalizarCampo = (valor) => {
   return texto === '' ? null : texto;
 };
 
-const verificarExistencia = (palavraBase) =>
-  new Promise((resolve, reject) => {
-    db.get(
-      'SELECT 1 FROM variacoes_palavras WHERE palavra_base = ? COLLATE BINARY',
-      [palavraBase],
-      (err, row) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(Boolean(row));
-        }
-      }
-    );
-  });
-
-const inserirVariacao = ({
-  palavra_base: palavraBase,
-  masc_sing: mascSing,
-  fem_sing: femSing,
-  masc_plur: mascPlur,
-  fem_plur: femPlur
-}) =>
-  new Promise((resolve, reject) => {
-    db.run(
-      `INSERT OR IGNORE INTO variacoes_palavras
-        (palavra_base, masc_sing, fem_sing, masc_plur, fem_plur)
-        VALUES (?, ?, ?, ?, ?)`,
-      [palavraBase, mascSing, femSing, mascPlur, femPlur],
-      function callback(err) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(this.changes > 0);
-        }
-      }
-    );
-  });
-
 const processarRegistros = async (registros) => {
   let importadas = 0;
   let ignoradas = 0;
@@ -79,16 +41,15 @@ const processarRegistros = async (registros) => {
       fem_plur: normalizarCampo(registro.fem_plur)
     };
 
-    const existe = await verificarExistencia(palavraBase);
-    if (existe) {
-      ignoradas += 1;
-      continue;
-    }
-
-    const inserida = await inserirVariacao(dados);
-    if (inserida) {
-      importadas += 1;
-    } else {
+    try {
+      const { criada } = await criarOuObterVariacao(dados);
+      if (criada) {
+        importadas += 1;
+      } else {
+        ignoradas += 1;
+      }
+    } catch (error) {
+      console.error('Erro ao importar variação:', error.message || error);
       ignoradas += 1;
     }
   }

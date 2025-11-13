@@ -54,8 +54,7 @@ const initializeDatabase = () => {
     db.run(`
       CREATE TABLE IF NOT EXISTS variacoes_palavras (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        palavra_base TEXT UNIQUE COLLATE BINARY,
-        masc_sing TEXT,
+        masc_sing TEXT UNIQUE COLLATE BINARY,
         fem_sing TEXT,
         masc_plur TEXT,
         fem_plur TEXT

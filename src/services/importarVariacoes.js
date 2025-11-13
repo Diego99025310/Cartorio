@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { Readable } = require('stream');
-const { criarOuObterVariacao } = require('./variacoesPalavrasService');
+const { createOrReturn } = require('./variacoesPalavrasService');
 
 let csvParser;
 try {
@@ -14,12 +14,16 @@ try {
 const removerBom = (valor) =>
   typeof valor === 'string' ? valor.replace(/^\uFEFF/, '') : valor;
 
-const normalizarCampo = (valor) => {
-  if (valor == null) {
+const lerLiteral = (valor) => {
+  if (valor === undefined || valor === null) {
     return null;
   }
-  const texto = removerBom(String(valor)).trim();
-  return texto === '' ? null : texto;
+
+  if (typeof valor === 'string') {
+    return removerBom(valor);
+  }
+
+  return removerBom(String(valor));
 };
 
 const processarRegistros = async (registros) => {
@@ -27,22 +31,18 @@ const processarRegistros = async (registros) => {
   let ignoradas = 0;
 
   for (const registro of registros) {
-    const palavraBase = normalizarCampo(registro.palavra_base);
-    if (!palavraBase) {
+    const mascSing = lerLiteral(registro.masc_sing);
+    if (mascSing === null || mascSing === '') {
       ignoradas += 1;
       continue;
     }
 
-    const dados = {
-      palavra_base: palavraBase,
-      masc_sing: normalizarCampo(registro.masc_sing),
-      fem_sing: normalizarCampo(registro.fem_sing),
-      masc_plur: normalizarCampo(registro.masc_plur),
-      fem_plur: normalizarCampo(registro.fem_plur)
-    };
+    const femSing = lerLiteral(registro.fem_sing);
+    const mascPlur = lerLiteral(registro.masc_plur);
+    const femPlur = lerLiteral(registro.fem_plur);
 
     try {
-      const { criada } = await criarOuObterVariacao(dados);
+      const { criada } = await createOrReturn(mascSing, femSing, mascPlur, femPlur);
       if (criada) {
         importadas += 1;
       } else {
@@ -104,12 +104,12 @@ const importarVariacoesDeTexto = async (conteudoCsv) => {
   const linhasNaoVazias = linhasBrutas.filter((linha) => linha.trim() !== '');
 
   const primeiraLinha = linhasNaoVazias[0] || '';
-  const possuiCabecalho = /^palavra_base\s*,/i.test(primeiraLinha);
+  const possuiCabecalho = /^masc_sing\s*,/i.test(primeiraLinha);
 
   const corpoTexto = linhasBrutas.join('\n');
   const textoComCabecalho = possuiCabecalho
     ? corpoTexto
-    : `palavra_base,masc_sing,fem_sing,masc_plur,fem_plur\n${corpoTexto}`;
+    : `masc_sing,fem_sing,masc_plur,fem_plur\n${corpoTexto}`;
 
   const textoNormalizado = textoComCabecalho.endsWith('\n')
     ? textoComCabecalho

@@ -467,7 +467,7 @@ const importarVariacoesCsv = async (req, res) => {
   if (typeof conteudoVariacoes !== 'string' || !conteudoVariacoes.trim()) {
     req.session.declaracoesFeedback = {
       errorMessage:
-        'Informe as variações no formato CSV (palavra_base, masc_sing, fem_sing, masc_plur, fem_plur).'
+        'Informe as variações no formato CSV (masc_sing, fem_sing, masc_plur, fem_plur).'
     };
     return res.redirect('/declaracoes');
   }

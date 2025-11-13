@@ -1,77 +1,64 @@
 const {
-  limparChaveLiteral,
-  limparFlexao,
-  findByBaseWordExact,
-  existsByBaseWord,
-  findExistingBaseWordsExact,
-  createVariation
+  toNullableText,
+  findByKey,
+  exists,
+  findExistingKeys,
+  create
 } = require('../models/VariacaoPalavra');
 
-const prepararDadosEntrada = (entrada = {}) => {
-  const chaveLiteral = limparChaveLiteral(entrada.palavra_base);
-
-  return {
-    chaveLiteral,
-    dados: {
-      palavra_base: chaveLiteral,
-      masc_sing: limparFlexao(entrada.masc_sing),
-      fem_sing: limparFlexao(entrada.fem_sing),
-      masc_plur: limparFlexao(entrada.masc_plur),
-      fem_plur: limparFlexao(entrada.fem_plur)
-    }
-  };
-};
-
-const criarOuObterVariacao = async (entrada) => {
-  const { chaveLiteral, dados } = prepararDadosEntrada(entrada);
-
-  if (!chaveLiteral) {
-    const erro = new Error('palavra_base é obrigatória.');
+const ensureMascSing = (valor) => {
+  if (typeof valor !== 'string' || valor === '') {
+    const erro = new Error('masc_sing é obrigatório.');
     erro.statusCode = 400;
     throw erro;
   }
 
-  const existente = await findByBaseWordExact(chaveLiteral);
+  return valor;
+};
+
+const createOrReturn = async (mascSing, femSing, mascPlur, femPlur) => {
+  const chave = ensureMascSing(mascSing);
+
+  const existente = await findByKey(chave);
   if (existente) {
     return { criada: false, variacao: existente };
   }
 
-  const variacao = await createVariation(dados);
+  const variacao = await create({
+    masc_sing: chave,
+    fem_sing: toNullableText(femSing),
+    masc_plur: toNullableText(mascPlur),
+    fem_plur: toNullableText(femPlur)
+  });
+
   return { criada: true, variacao };
 };
 
-const buscarVariacaoLiteral = async (palavraBase) => {
-  const chaveLiteral = limparChaveLiteral(palavraBase);
-  if (!chaveLiteral) {
+const getVariacaoParaChave = async (chaveLiteral) => {
+  if (typeof chaveLiteral !== 'string' || chaveLiteral === '') {
     return null;
   }
 
-  return findByBaseWordExact(chaveLiteral);
+  return findByKey(chaveLiteral);
 };
 
-const buscarVariacoesLiterais = async (palavrasBase) => {
-  const chavesLiterais = Array.from(
+const buscarVariacoesLiterais = async (chaves) => {
+  const chavesUnicas = Array.from(
     new Set(
-      (palavrasBase || [])
-        .filter((valor) => typeof valor === 'string')
-        .map((valor) => valor.trim())
-        .filter((valor) => valor)
+      (chaves || []).filter((valor) => typeof valor === 'string' && valor !== '')
     )
   );
 
-  if (chavesLiterais.length === 0) {
+  if (chavesUnicas.length === 0) {
     return new Map();
   }
 
-  const pares = await Promise.all(
-    chavesLiterais.map(async (chave) => {
-      const variacao = await findByBaseWordExact(chave);
-      return [chave, variacao];
-    })
+  const resultados = await Promise.all(
+    chavesUnicas.map(async (chave) => [chave, await findByKey(chave)])
   );
 
   const mapa = new Map();
-  pares.forEach(([chave, variacao]) => {
+  resultados.forEach(([chave, variacao]) => {
     if (variacao) {
       mapa.set(chave, variacao);
     }
@@ -80,26 +67,14 @@ const buscarVariacoesLiterais = async (palavrasBase) => {
   return mapa;
 };
 
-const listarChavesExistentes = async (palavrasBase) => {
-  const existentes = await findExistingBaseWordsExact(palavrasBase);
-  return existentes;
-};
+const listarChavesExistentes = async (chaves) => findExistingKeys(chaves);
 
-const existeVariacaoLiteral = async (palavraBase) => {
-  const chaveLiteral = limparChaveLiteral(palavraBase);
-  if (!chaveLiteral) {
-    return false;
-  }
-
-  return existsByBaseWord(chaveLiteral);
-};
+const existeVariacaoLiteral = async (chave) => exists(chave);
 
 module.exports = {
-  criarOuObterVariacao,
-  buscarVariacaoLiteral,
+  createOrReturn,
+  getVariacaoParaChave,
   buscarVariacoesLiterais,
   listarChavesExistentes,
-  existeVariacaoLiteral,
-  limparChaveLiteral,
-  limparFlexao
+  existeVariacaoLiteral
 };

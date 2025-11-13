@@ -1,36 +1,29 @@
 const { db } = require('../database');
 
-const limparChaveLiteral = (palavraBase) => {
-  if (typeof palavraBase !== 'string') {
-    return '';
-  }
-
-  const chave = palavraBase.trim();
-  return chave;
-};
-
-const limparFlexao = (valor) => {
-  if (valor == null) {
+const toNullableText = (valor) => {
+  if (valor === undefined || valor === null) {
     return null;
   }
 
-  const texto = String(valor).trim();
-  return texto === '' ? null : texto;
+  if (typeof valor === 'string') {
+    return valor;
+  }
+
+  return String(valor);
 };
 
-const findByBaseWordExact = (palavraBase) =>
+const findByKey = (mascSing) =>
   new Promise((resolve, reject) => {
-    const chaveLiteral = limparChaveLiteral(palavraBase);
-    if (!chaveLiteral) {
+    if (typeof mascSing !== 'string' || mascSing === '') {
       resolve(null);
       return;
     }
 
     db.get(
-      `SELECT id, palavra_base, masc_sing, fem_sing, masc_plur, fem_plur
+      `SELECT id, masc_sing, fem_sing, masc_plur, fem_plur
          FROM variacoes_palavras
-         WHERE palavra_base = ? COLLATE BINARY`,
-      [chaveLiteral],
+         WHERE masc_sing = ? COLLATE BINARY`,
+      [mascSing],
       (err, row) => {
         if (err) {
           reject(err);
@@ -41,17 +34,16 @@ const findByBaseWordExact = (palavraBase) =>
     );
   });
 
-const existsByBaseWord = (palavraBase) =>
+const exists = (mascSing) =>
   new Promise((resolve, reject) => {
-    const chaveLiteral = limparChaveLiteral(palavraBase);
-    if (!chaveLiteral) {
+    if (typeof mascSing !== 'string' || mascSing === '') {
       resolve(false);
       return;
     }
 
     db.get(
-      'SELECT 1 FROM variacoes_palavras WHERE palavra_base = ? COLLATE BINARY',
-      [chaveLiteral],
+      'SELECT 1 FROM variacoes_palavras WHERE masc_sing = ? COLLATE BINARY',
+      [mascSing],
       (err, row) => {
         if (err) {
           reject(err);
@@ -62,61 +54,56 @@ const existsByBaseWord = (palavraBase) =>
     );
   });
 
-const findExistingBaseWordsExact = (palavrasBase) =>
+const findExistingKeys = (chaves) =>
   new Promise((resolve, reject) => {
-    const chavesLiterais = (palavrasBase || [])
-      .filter((valor) => typeof valor === 'string')
-      .map((valor) => valor.trim())
-      .filter((valor) => valor);
+    const chavesValidas = Array.from(
+      new Set(
+        (chaves || []).filter(
+          (valor) => typeof valor === 'string' && valor !== ''
+        )
+      )
+    );
 
-    if (chavesLiterais.length === 0) {
+    if (chavesValidas.length === 0) {
       resolve([]);
       return;
     }
 
-    const placeholders = chavesLiterais.map(() => '?').join(', ');
+    const placeholders = chavesValidas.map(() => '?').join(', ');
 
     db.all(
-      `SELECT palavra_base
+      `SELECT masc_sing
          FROM variacoes_palavras
-         WHERE palavra_base COLLATE BINARY IN (${placeholders})`,
-      chavesLiterais,
+         WHERE masc_sing COLLATE BINARY IN (${placeholders})`,
+      chavesValidas,
       (err, rows) => {
         if (err) {
           reject(err);
         } else {
-          resolve(rows.map((row) => row.palavra_base));
+          resolve(rows.map((row) => row.masc_sing));
         }
       }
     );
   });
 
-const createVariation = ({
-  palavra_base: palavraBase,
-  masc_sing: mascSing,
-  fem_sing: femSing,
-  masc_plur: mascPlur,
-  fem_plur: femPlur
-}) =>
+const create = ({ masc_sing: mascSing, fem_sing: femSing, masc_plur: mascPlur, fem_plur: femPlur }) =>
   new Promise((resolve, reject) => {
-    const chaveLiteral = limparChaveLiteral(palavraBase);
-    if (!chaveLiteral) {
-      reject(new Error('palavra_base é obrigatória.'));
+    if (typeof mascSing !== 'string' || mascSing === '') {
+      reject(new Error('masc_sing é obrigatório.'));
       return;
     }
 
     const dados = [
-      chaveLiteral,
-      limparFlexao(mascSing),
-      limparFlexao(femSing),
-      limparFlexao(mascPlur),
-      limparFlexao(femPlur)
+      mascSing,
+      toNullableText(femSing),
+      toNullableText(mascPlur),
+      toNullableText(femPlur)
     ];
 
     db.run(
       `INSERT INTO variacoes_palavras
-         (palavra_base, masc_sing, fem_sing, masc_plur, fem_plur)
-         VALUES (?, ?, ?, ?, ?)`,
+         (masc_sing, fem_sing, masc_plur, fem_plur)
+         VALUES (?, ?, ?, ?)`,
       dados,
       function callback(err) {
         if (err) {
@@ -124,7 +111,7 @@ const createVariation = ({
           return;
         }
 
-        findByBaseWordExact(chaveLiteral)
+        findByKey(mascSing)
           .then((variacao) => resolve(variacao))
           .catch((buscaErr) => reject(buscaErr));
       }
@@ -132,10 +119,9 @@ const createVariation = ({
   });
 
 module.exports = {
-  limparChaveLiteral,
-  limparFlexao,
-  findByBaseWordExact,
-  existsByBaseWord,
-  findExistingBaseWordsExact,
-  createVariation
+  toNullableText,
+  findByKey,
+  exists,
+  findExistingKeys,
+  create
 };

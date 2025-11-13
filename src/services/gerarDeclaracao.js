@@ -68,7 +68,7 @@ const interpretarPlaceholder = (placeholderBruto) => {
   return { entidade: entidadeFinal, chave: chave.trim() };
 };
 
-const obterPalavraBaseDoPlaceholder = (placeholderBruto) =>
+const obterChaveDoPlaceholder = (placeholderBruto) =>
   interpretarPlaceholder(placeholderBruto).chave;
 
 const normalizarConfiguracao = (entrada = {}, padrao = {}) => ({
@@ -172,4 +172,4 @@ const gerarDeclaracao = async (textoModelo, generoOuConfiguracao, numero) => {
   return resultado;
 };
 
-module.exports = { gerarDeclaracao, extrairPlaceholders, obterPalavraBaseDoPlaceholder };
+module.exports = { gerarDeclaracao, extrairPlaceholders, obterChaveDoPlaceholder };

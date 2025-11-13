@@ -1,4 +1,4 @@
-const { findByBaseWord, normalizarPalavraBase } = require('../models/VariacaoPalavra');
+const { buscarVariacoesLiterais } = require('./variacoesPalavrasService');
 
 const COLUNAS = {
   M: { S: 'masc_sing', P: 'masc_plur' },
@@ -119,27 +119,14 @@ const gerarDeclaracao = async (textoModelo, generoOuConfiguracao, numero) => {
   };
 
   const informacoesPlaceholders = placeholdersBrutos
-    .map((placeholderBruto) => {
-      const interpretado = interpretarPlaceholder(placeholderBruto);
-      return {
-        ...interpretado,
-        chaveNormalizada: normalizarPalavraBase(interpretado.chave)
-      };
-    })
-    .filter((item) => item.chaveNormalizada);
+    .map((placeholderBruto) => interpretarPlaceholder(placeholderBruto))
+    .filter((item) => item.chave);
 
-  const chavesNormalizadas = [
-    ...new Set(informacoesPlaceholders.map((item) => item.chaveNormalizada))
+  const chavesLiterais = [
+    ...new Set(informacoesPlaceholders.map((item) => item.chave))
   ];
 
-  const variacoes = await Promise.all(
-    chavesNormalizadas.map(async (chaveNormalizada) => {
-      const variacao = await findByBaseWord(chaveNormalizada);
-      return [chaveNormalizada, variacao];
-    })
-  );
-
-  const mapaVariacoes = new Map(variacoes);
+  const mapaVariacoes = await buscarVariacoesLiterais(chavesLiterais);
 
   const resultado = textoModelo.replace(
     criarRegexPlaceholders(),
@@ -160,12 +147,7 @@ const gerarDeclaracao = async (textoModelo, generoOuConfiguracao, numero) => {
         return original;
       }
 
-      const chaveNormalizada = normalizarPalavraBase(chave);
-      if (!chaveNormalizada) {
-        return original;
-      }
-
-      const variacao = mapaVariacoes.get(chaveNormalizada);
+      const variacao = mapaVariacoes.get(chave);
       if (!variacao) {
         return original;
       }

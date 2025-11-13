@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { Readable } = require('stream');
-const { db } = require('../database');
+const { createOrReturn } = require('./variacoesPalavrasService');
 
 let csvParser;
 try {
@@ -14,81 +14,42 @@ try {
 const removerBom = (valor) =>
   typeof valor === 'string' ? valor.replace(/^\uFEFF/, '') : valor;
 
-const normalizarCampo = (valor) => {
-  if (valor == null) {
+const lerLiteral = (valor) => {
+  if (valor === undefined || valor === null) {
     return null;
   }
-  const texto = removerBom(String(valor)).trim();
-  return texto === '' ? null : texto;
+
+  if (typeof valor === 'string') {
+    return removerBom(valor);
+  }
+
+  return removerBom(String(valor));
 };
-
-const verificarExistencia = (palavraBase) =>
-  new Promise((resolve, reject) => {
-    db.get(
-      'SELECT 1 FROM variacoes_palavras WHERE palavra_base = ? COLLATE BINARY',
-      [palavraBase],
-      (err, row) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(Boolean(row));
-        }
-      }
-    );
-  });
-
-const inserirVariacao = ({
-  palavra_base: palavraBase,
-  masc_sing: mascSing,
-  fem_sing: femSing,
-  masc_plur: mascPlur,
-  fem_plur: femPlur
-}) =>
-  new Promise((resolve, reject) => {
-    db.run(
-      `INSERT OR IGNORE INTO variacoes_palavras
-        (palavra_base, masc_sing, fem_sing, masc_plur, fem_plur)
-        VALUES (?, ?, ?, ?, ?)`,
-      [palavraBase, mascSing, femSing, mascPlur, femPlur],
-      function callback(err) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(this.changes > 0);
-        }
-      }
-    );
-  });
 
 const processarRegistros = async (registros) => {
   let importadas = 0;
   let ignoradas = 0;
 
   for (const registro of registros) {
-    const palavraBase = normalizarCampo(registro.palavra_base);
-    if (!palavraBase) {
+    const mascSing = lerLiteral(registro.masc_sing);
+    if (mascSing === null || mascSing === '') {
       ignoradas += 1;
       continue;
     }
 
-    const dados = {
-      palavra_base: palavraBase,
-      masc_sing: normalizarCampo(registro.masc_sing),
-      fem_sing: normalizarCampo(registro.fem_sing),
-      masc_plur: normalizarCampo(registro.masc_plur),
-      fem_plur: normalizarCampo(registro.fem_plur)
-    };
+    const femSing = lerLiteral(registro.fem_sing);
+    const mascPlur = lerLiteral(registro.masc_plur);
+    const femPlur = lerLiteral(registro.fem_plur);
 
-    const existe = await verificarExistencia(palavraBase);
-    if (existe) {
-      ignoradas += 1;
-      continue;
-    }
-
-    const inserida = await inserirVariacao(dados);
-    if (inserida) {
-      importadas += 1;
-    } else {
+    try {
+      const { criada } = await createOrReturn(mascSing, femSing, mascPlur, femPlur);
+      if (criada) {
+        importadas += 1;
+      } else {
+        ignoradas += 1;
+      }
+    } catch (error) {
+      console.error('Erro ao importar variação:', error.message || error);
       ignoradas += 1;
     }
   }
@@ -143,12 +104,12 @@ const importarVariacoesDeTexto = async (conteudoCsv) => {
   const linhasNaoVazias = linhasBrutas.filter((linha) => linha.trim() !== '');
 
   const primeiraLinha = linhasNaoVazias[0] || '';
-  const possuiCabecalho = /^palavra_base\s*,/i.test(primeiraLinha);
+  const possuiCabecalho = /^masc_sing\s*,/i.test(primeiraLinha);
 
   const corpoTexto = linhasBrutas.join('\n');
   const textoComCabecalho = possuiCabecalho
     ? corpoTexto
-    : `palavra_base,masc_sing,fem_sing,masc_plur,fem_plur\n${corpoTexto}`;
+    : `masc_sing,fem_sing,masc_plur,fem_plur\n${corpoTexto}`;
 
   const textoNormalizado = textoComCabecalho.endsWith('\n')
     ? textoComCabecalho

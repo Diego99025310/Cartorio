@@ -1,7 +1,5 @@
-palavra_base;masc_sing;fem_sing;masc_plur;fem_plur
-O;O;A;Os;As
-o;o;a;os;as
-VENDEDOR;vendedor;vendedora;vendedores;vendedoras
-COMPRADOR;comprador;compradora;compradores;compradoras
-vende;vende;vende;vendem;vendem
-IMÓVEL;imóvel;imóvel;imóveis;imóveis
+masc_sing;fem_sing;masc_plur;fem_plur
+O;A;Os;As
+o;a;os;as
+vendedor;vendedora;vendedores;vendedoras
+comprador;compradora;compradores;compradoras

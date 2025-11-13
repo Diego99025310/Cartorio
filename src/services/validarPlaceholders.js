@@ -1,5 +1,5 @@
-const { extrairPlaceholders, obterPalavraBaseDoPlaceholder } = require('./gerarDeclaracao');
-const { findExistingBaseWords, normalizarPalavraBase } = require('../models/VariacaoPalavra');
+const { extrairPlaceholders, obterChaveDoPlaceholder } = require('./gerarDeclaracao');
+const { listarChavesExistentes } = require('./variacoesPalavrasService');
 
 const verificarPlaceholdersNoTexto = async (texto) => {
   const placeholdersBrutos = [...new Set(extrairPlaceholders(texto))];
@@ -7,16 +7,14 @@ const verificarPlaceholdersNoTexto = async (texto) => {
     return { placeholders: [], faltantes: [] };
   }
 
-  const palavrasBase = [...new Set(placeholdersBrutos.map(obterPalavraBaseDoPlaceholder))];
+  const chavesLiterais = [...new Set(placeholdersBrutos.map(obterChaveDoPlaceholder))];
 
-  const existentes = await findExistingBaseWords(palavrasBase);
+  const existentes = await listarChavesExistentes(chavesLiterais);
   const existentesSet = new Set(existentes);
-  const faltantes = palavrasBase.filter(
-    (placeholder) => !existentesSet.has(normalizarPalavraBase(placeholder))
-  );
+  const faltantes = chavesLiterais.filter((placeholder) => !existentesSet.has(placeholder));
 
   return {
-    placeholders: palavrasBase,
+    placeholders: chavesLiterais,
     faltantes
   };
 };

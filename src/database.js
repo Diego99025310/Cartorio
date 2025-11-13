@@ -8,6 +8,7 @@ const db = new sqlite3.Database(dbPath);
 const initializeDatabase = () => {
   db.serialize(() => {
     db.run('PRAGMA foreign_keys = ON');
+    db.run('PRAGMA case_sensitive_like = ON');
 
     db.run(`
       CREATE TABLE IF NOT EXISTS users (
@@ -53,8 +54,7 @@ const initializeDatabase = () => {
     db.run(`
       CREATE TABLE IF NOT EXISTS variacoes_palavras (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        palavra_base TEXT UNIQUE COLLATE BINARY,
-        masc_sing TEXT,
+        masc_sing TEXT UNIQUE COLLATE BINARY,
         fem_sing TEXT,
         masc_plur TEXT,
         fem_plur TEXT
